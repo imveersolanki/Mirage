@@ -151,7 +151,7 @@ main{display:grid;grid-template-columns:246px var(--split-a,1fr) var(--split-b,1
 .meter .track i.low{background:var(--red)}
 
 .acts{display:flex;gap:2px;padding:12px 14px;border-top:1px solid var(--hair)}
-.acts button{flex:1;font-family:var(--m);font-size:10px;padding:7px 4px;border:1px solid var(--line)}
+.acts button{flex:1;font-family:var(--m);font-size:9.5px;padding:7px 2px;border:1px solid var(--line);white-space:nowrap}
 .acts button:hover{background:var(--ink);color:var(--paper)}
 .acts button.warn{border-color:var(--red);color:var(--red)}
 .acts button.warn:hover{background:var(--red);border-color:var(--red);color:#fff}
@@ -489,3 +489,97 @@ footer#app-foot,footer:not(.modal footer){}
   .body.split .form{border-right:none;border-bottom:1px solid var(--line)}
 }
 @media (prefers-reduced-motion:reduce){.cx{animation:none}}
+
+/* =====================================================================
+   v0.6 features
+   ===================================================================== */
+.grp.tools{margin-left:14px;padding-left:10px;border-left:1px solid var(--hair)}
+.grp.end{margin-left:auto}
+.livedot{display:none;width:7px;height:7px;border-radius:50%;background:#2BB673;margin-right:6px;vertical-align:1px}
+.livedot.on{display:inline-block;animation:livep 1.6s ease-in-out infinite}
+@keyframes livep{50%{opacity:.35}}
+@media (max-width:1380px){ .grp.tools .btn{padding-left:7px;padding-right:7px} }
+
+/* pages */
+.pages{border-bottom:1px solid var(--hair);padding-bottom:8px}
+.pages .lbl{padding:13px 14px 7px;display:flex;align-items:center}
+.pages .shr{margin-left:auto;display:flex;gap:5px;align-items:center;letter-spacing:.06em;text-transform:none;cursor:pointer}
+.ptabs{display:flex;flex-wrap:wrap;gap:3px;padding:0 14px}
+.pt{font-family:var(--m);font-size:10.5px;padding:4px 8px;border:1px solid var(--hair);max-width:150px;
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap;display:inline-flex;align-items:center;gap:6px}
+.pt:hover{border-color:var(--ink)}
+.pt.on{background:var(--ink);color:var(--paper);border-color:var(--ink)}
+.pt[contenteditable=true]{outline:1px solid var(--red);background:var(--field);color:var(--ink)}
+.pt .px{opacity:.6}.pt .px:hover{opacity:1;color:var(--red)}
+.pt.add{border-style:dashed;color:var(--sub)}
+
+/* structure: children */
+.lay.kid .nm{padding-left:14px;position:relative}
+.lay.kid .nm::before{content:"";position:absolute;left:3px;top:50%;width:7px;border-top:1px solid var(--sub)}
+.lay .lk.hd{color:var(--sub)}
+
+/* inspector: alternatives */
+.alts{display:flex;flex-wrap:wrap;gap:4px;align-items:center;margin:-2px 0 10px}
+.alts:empty{display:none}
+.alts .ak{font-family:var(--m);font-size:9px;color:var(--sub);letter-spacing:.08em;margin-right:2px}
+.alts button{font-family:var(--m);font-size:10px;padding:3px 7px;border:1px dashed var(--line)}
+.alts button i{font-style:normal;color:var(--sub)}
+.alts button:hover{border-style:solid;background:var(--ink);color:var(--paper)}
+
+/* shared form bits for the new modals */
+.tin{width:100%;padding:7px 9px;border:1px solid var(--line);background:var(--field);font-size:12px;outline:none;resize:vertical}
+.tin:focus{border-color:var(--red)}
+.tin.mono{font-family:var(--m);font-size:11px}
+.modal .row2 .tin{flex:1}
+.lnk{text-decoration:underline;text-underline-offset:2px;font-size:inherit;color:var(--ink)}
+.cklist{display:flex;flex-direction:column;gap:2px;max-height:180px;overflow:auto}
+.cklist label{display:flex;gap:8px;align-items:center;font-size:12px;padding:4px 2px;cursor:pointer}
+.cklist label span{font-family:var(--m);font-size:10px;color:var(--sub)}
+.li{display:flex;align-items:center;gap:8px;padding:8px 0;border-bottom:1px solid var(--hair);font-size:12px}
+.li b{font-weight:600}.li .m{font-family:var(--m);font-size:10px;color:var(--sub)}
+.li .a{margin-left:auto;display:flex;gap:2px}
+.li .a button{font-family:var(--m);font-size:10px;padding:4px 8px;border:1px solid var(--line)}
+.li .a button:hover{background:var(--ink);color:var(--paper)}
+.li .a button.dg{border-color:var(--red);color:var(--red)}
+.empty2{font-size:12px;color:var(--sub);padding:8px 0}
+
+/* command palette */
+.modal.pal{align-items:flex-start;padding-top:12vh}
+.modal.pal .box{width:min(560px,100%);padding:0}
+#cmdIn{width:100%;border:none;border-bottom:1px solid var(--line);padding:14px 16px;font-size:15px;outline:none;background:var(--paper)}
+.cmdl{max-height:52vh;overflow:auto;padding:4px 0}
+.cmdl button{display:flex;width:100%;text-align:left;padding:8px 16px;font-size:13px;gap:10px;align-items:center}
+.cmdl button .g{font-family:var(--m);font-size:9px;letter-spacing:.14em;text-transform:uppercase;color:var(--sub);width:62px;flex:none}
+.cmdl button kbd{margin-left:auto;font-family:var(--m);font-size:10px;color:var(--sub)}
+.cmdl button.on{background:var(--ink);color:var(--paper)}
+.cmdl button.on .g,.cmdl button.on kbd{color:var(--paper);opacity:.7}
+
+/* import */
+.drop{display:flex !important;align-items:center;justify-content:center;min-height:110px;border:1px dashed var(--line);
+  text-align:center;padding:14px;cursor:pointer;font-family:var(--f) !important;font-size:12px !important;letter-spacing:0 !important;
+  text-transform:none !important;color:var(--sub) !important}
+.drop.over,.drop:hover{border-style:solid;color:var(--ink) !important}
+#impCv{display:block;width:100%;height:auto;background:var(--sk-bg)}
+
+/* live */
+.people{display:flex;flex-wrap:wrap;gap:4px;margin-top:10px}
+.people span{font-family:var(--m);font-size:10px;color:#fff;padding:3px 7px}
+
+/* =====================================================================
+   Responsive flags in the output. Container queries, exported as media.
+   ===================================================================== */
+.c-group{padding:0;display:block}
+.c-group > .c-row:last-child{border-bottom:none}
+@container page (max-width:800px){
+  .c-hide-t{display:none !important}
+  .c-row.c-stack-t{grid-template-columns:1fr !important}
+  .c-row.c-stack-t>*+*{border-left:none;border-top:var(--c-bw) solid var(--c-line)}
+}
+@container page (max-width:760px){
+  .c-row.c-keep{grid-template-columns:var(--cols) !important}
+  .c-row.c-keep>*+*{border-top:none;border-left:var(--c-bw) solid var(--c-line)}
+  .c-first{order:-1}
+}
+@container page (max-width:520px){
+  .c-hide-p{display:none !important}
+}

@@ -8,7 +8,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
 <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700;800&family=Archivo+Black&family=Bebas+Neue&family=Caveat:wght@400;700&family=Cormorant+Garamond:wght@300;400;600;700&family=DM+Sans:wght@400;500;700&family=EB+Garamond:wght@400;500;600&family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,900&family=IBM+Plex+Sans:wght@400;500;600;700&family=Instrument+Serif:ital@0;1&family=JetBrains+Mono:wght@400;500;700&family=Kalam:wght@400;700&family=Libre+Baskerville:wght@400;700&family=Lora:wght@400;500;600;700&family=Manrope:wght@400;500;700;800&family=Nunito:wght@400;600;700;900&family=Orbitron:wght@400;700;900&family=Oswald:wght@400;500;600;700&family=Playfair+Display:wght@400;500;700;800;900&family=Poiret+One&family=Roboto:wght@400;500;700;900&family=Sora:wght@400;600;800&family=Source+Serif+4:wght@400;600;700&family=Space+Grotesk:wght@400;500;600;700&family=Space+Mono:wght@400;700&family=Syne:wght@400;600;800&family=VT323&family=Work+Sans:wght@400;500;700;800&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="../css/mirage.css?v=6">
+<link rel="stylesheet" href="../css/mirage.css?v=7">
 <link rel="stylesheet" href="../css/themes.css?v=6">
 </head>
 <body>
@@ -34,7 +34,17 @@
     <button class="btn on" id="bLabels">Labels</button>
   </div>
 
+  <div class="grp tools">
+    <button class="btn" id="bAI" title="Write copy, palettes and layouts with Gemini">AI</button>
+    <button class="btn" id="bImport" title="Turn a photo or screenshot into a sketch">Import</button>
+    <button class="btn" id="bSnips" title="Saved groups of rows">Snippets</button>
+    <button class="btn" id="bVers" title="Named versions">Versions</button>
+    <button class="btn" id="bLive" title="Sketch together"><span class="livedot" id="liveDot"></span>Live</button>
+    <button class="btn" id="bShare" title="Share link, Figma, deploy">Share</button>
+  </div>
+
   <div class="grp end">
+    <button class="btn ico" id="bCmd" title="Command palette (⌘K)">⌘K</button>
     <button class="btn" id="bDesign">Design</button>
     <button class="btn" id="bProjects">Projects</button>
     <span class="rule"></span>
@@ -51,6 +61,10 @@
 <main>
   <!-- ===================== rail ===================== -->
   <aside id="rail">
+    <div class="pages" id="pagesBar">
+      <div class="lbl">Pages <label class="shr" title="Keep nav and footer text the same on every page"><input type="checkbox" id="shareChrome" checked> shared nav</label></div>
+      <div class="ptabs" id="pageTabs"></div>
+    </div>
     <div class="pane on" id="paneLayers">
       <div class="lbl">Structure</div>
       <div class="scr" id="layers"><p class="empty">Nothing drawn yet. Drag a box on the surface.</p></div>
@@ -59,14 +73,19 @@
     <div class="pane" id="paneInsp">
       <div class="lbl" id="inspHead">Box</div>
       <div class="scr">
-        <section class="fld">
+        <section class="fld" id="fldRead">
           <label>Reads as</label>
           <div class="meter">
             <span id="cfLab">auto</span>
             <span class="track"><i id="cfBar"></i></span>
             <span id="cfPct">0%</span>
           </div>
+          <div class="alts" id="alts"></div>
           <div class="chips" id="typeGrid"></div>
+        </section>
+        <section class="fld" id="fldGroup" hidden>
+          <label>Group</label>
+          <p class="note" id="groupNote"></p>
         </section>
 
         <section class="fld">
@@ -95,6 +114,15 @@
           <div class="chips" id="varGrid"></div>
         </section>
 
+        <section class="fld" id="fldRsp">
+          <label>Small screens</label>
+          <div class="chips three" id="hideGrid"></div>
+          <div id="stackWrap" hidden>
+            <p class="note" style="margin:10px 0 6px">This row</p>
+            <div class="chips three" id="stackGrid"></div>
+          </div>
+        </section>
+
         <section class="fld">
           <label>Text</label>
           <p class="note">Every word in the preview is editable. Click it and type.</p>
@@ -102,6 +130,7 @@
       </div>
       <div class="acts">
         <button id="bAuto">Re-read</button>
+        <button id="bCopyBox" title="Copy this component's HTML">Copy</button>
         <button id="bDupe">Duplicate</button>
         <button id="bDel" class="warn">Delete</button>
       </div>
@@ -189,7 +218,7 @@
 <footer>
   <span class="hint"><b>Surface</b> · <span id="ovCols">16</span> col</span>
   <span class="hint"><b>drag</b> to draw</span><span class="hint"><b>drag a box</b> to move</span>
-  <span class="hint"><b>handles</b> to resize</span><span class="hint"><b>side by side</b> is a row</span>
+  <span class="hint"><b>handles</b> to resize</span><span class="hint"><b>alt-drag</b> inside to nest</span><span class="hint"><b>side by side</b> is a row</span>
   <span class="sp"></span>
   <span id="ftSel">no selection</span><span>·</span><span>MIT</span>
 </footer>
@@ -201,13 +230,15 @@
     <h2>Export</h2>
     <div class="seg" id="segFmt">
       <button data-f="html" class="on">HTML</button><button data-f="react">React</button>
-      <button data-f="tw">Tailwind</button><button data-f="design">design.md</button>
+      <button data-f="tw">Tailwind</button><button data-f="vue">Vue</button><button data-f="svelte">Svelte</button>
+      <button data-f="astro">Astro</button><button data-f="next">Next.js</button><button data-f="design">design.md</button>
       <button data-f="json">JSON</button>
     </div>
     <button class="x" id="xExport" aria-label="Close">&times;</button>
   </header>
   <div class="body"><pre id="codeOut"></pre></div>
   <footer><span class="note" id="exNote"></span>
+    <button class="btn" id="bSiteZip" title="Every page as a static site">Site .zip</button>
     <button class="btn" id="bCopy">Copy</button>
     <button class="btn solid" id="bDownload">Download</button></footer>
 </div></div>
@@ -276,9 +307,124 @@
   <div class="body"><dl class="keys" id="keyList"></dl></div>
 </div></div>
 
+
+<!-- ===================== command palette ===================== -->
+<div class="modal pal" id="mCmd"><div class="box">
+  <input id="cmdIn" placeholder="Type a command…" autocomplete="off" spellcheck="false">
+  <div class="cmdl" id="cmdList" role="listbox"></div>
+</div></div>
+
+<!-- ===================== snippets ===================== -->
+<div class="modal" id="mSnip"><div class="box">
+  <header><h2>Snippets</h2><button class="x" data-x="mSnip" aria-label="Close">&times;</button></header>
+  <div class="body">
+    <section class="fld"><label>Save rows from this page</label>
+      <div id="snipRows" class="cklist"></div>
+      <div class="row2" style="margin-top:9px"><input class="tin" id="snipName" placeholder="Snippet name"><button class="btn solid" id="bSnipSave">Save</button></div>
+    </section>
+    <section class="fld"><label>Your snippets</label><div id="snipList"></div></section>
+  </div>
+  <footer><span class="note">Inserted at the bottom of the current page. Stored in this browser.</span></footer>
+</div></div>
+
+<!-- ===================== versions ===================== -->
+<div class="modal" id="mVer"><div class="box">
+  <header><h2>Versions</h2><button class="x" data-x="mVer" aria-label="Close">&times;</button></header>
+  <div class="body">
+    <div class="row2"><input class="tin" id="verName" placeholder="Name this version, e.g. Before client review"><button class="btn solid" id="bVerSave">Save version</button></div>
+    <div id="verList" style="margin-top:12px"></div>
+  </div>
+  <footer><span class="note">Saved with the project. Restoring can be undone with ⌘Z.</span></footer>
+</div></div>
+
+<!-- ===================== share ===================== -->
+<div class="modal" id="mShare"><div class="box wide">
+  <header><h2>Share</h2><button class="x" data-x="mShare" aria-label="Close">&times;</button></header>
+  <div class="body">
+    <section class="fld"><label>Link</label>
+      <p class="note">The whole sketch is packed into the link itself. No server, nothing uploaded.</p>
+      <div class="row2" style="margin-top:8px"><input class="tin mono" id="shareUrl" readonly><button class="btn solid" id="bShareCopy">Copy link</button></div>
+      <p class="note" id="shareLen"></p>
+    </section>
+    <section class="fld"><label>Figma</label>
+      <p class="note">Export the wireframe as SVG and drop it into Figma. Going back: select frames in Figma, Copy as SVG, and paste here.</p>
+      <div class="row2" style="margin-top:8px"><button class="btn" id="bFigOut">Download SVG</button><button class="btn" id="bFigCopy">Copy SVG</button></div>
+      <textarea class="tin mono" id="figIn" rows="3" placeholder="Paste SVG from Figma here" style="margin-top:8px"></textarea>
+      <div class="row2" style="margin-top:6px"><button class="btn" id="bFigIn">Import as new page</button></div>
+    </section>
+    <section class="fld"><label>Deploy</label>
+      <p class="note">Publishes every page to Netlify with your personal access token. The token stays in this browser.</p>
+      <div class="row2" style="margin-top:8px"><input class="tin mono" id="nlToken" type="password" placeholder="Netlify personal access token"><button class="btn solid" id="bDeploy">Deploy</button></div>
+      <p class="note" id="deployOut"></p>
+      <p class="note">No token? <button class="lnk" id="bDrop">Download the site and use Netlify Drop</button></p>
+    </section>
+  </div>
+</div></div>
+
+<!-- ===================== import image ===================== -->
+<div class="modal" id="mImport"><div class="box wide">
+  <header><h2>Import an image</h2><button class="x" data-x="mImport" aria-label="Close">&times;</button></header>
+  <div class="body split">
+    <div class="form">
+      <section class="fld"><label>What is it</label>
+        <div class="chips" id="impMode"><button data-m="sketch" class="on">Paper sketch</button><button data-m="shot">Screenshot</button></div>
+        <p class="note" id="impHint" style="margin-top:8px">A photo of boxes drawn on paper or a whiteboard. Dark lines on a light background work best.</p>
+      </section>
+      <section class="fld">
+        <label class="drop" id="impDrop"><input type="file" id="impFile" accept="image/*" hidden><span>Drop an image, paste one, or click to choose</span></label>
+      </section>
+      <section class="fld"><label>Sensitivity</label>
+        <div class="slider"><span class="k">Min</span><input type="range" id="impMin" min="1" max="12" step="1" value="4"><span class="n" id="impMinV">4</span></div>
+      </section>
+    </div>
+    <div class="md"><div class="mdhead" id="impStat">preview</div><canvas id="impCv" width="560" height="380"></canvas></div>
+  </div>
+  <footer><span class="note">Everything runs in your browser. The image is never uploaded.</span>
+    <button class="btn" id="bImpPage">Add as new page</button><button class="btn solid" id="bImpUse">Replace this page</button></footer>
+</div></div>
+
+<!-- ===================== AI ===================== -->
+<div class="modal" id="mAI"><div class="box wide">
+  <header><h2>AI</h2><span class="tag">Gemini</span><button class="x" data-x="mAI" aria-label="Close">&times;</button></header>
+  <div class="body">
+    <section class="fld"><label>Mode</label><div class="chips three" id="aiMode"></div></section>
+    <section class="fld"><label>Brief</label>
+      <textarea class="tin" id="aiBrief" rows="3" placeholder="A landing page for a neighbourhood bakery that delivers sourdough before 8am"></textarea>
+    </section>
+    <section class="fld"><label>Key</label>
+      <div class="row2"><input class="tin mono" id="aiKey" type="password" placeholder="Gemini API key (stays in this browser)"><input class="tin mono" id="aiModel" style="max-width:200px" value="gemini-2.5-flash" title="Model"></div>
+      <p class="note">Get a key at aistudio.google.com. Calls go straight from your browser to Google.</p>
+    </section>
+    <p class="note" id="aiOut"></p>
+  </div>
+  <footer><span class="note" id="aiNote"></span><button class="btn solid" id="bAIRun">Generate</button></footer>
+</div></div>
+
+<!-- ===================== live ===================== -->
+<div class="modal" id="mLive"><div class="box">
+  <header><h2>Live</h2><button class="x" data-x="mLive" aria-label="Close">&times;</button></header>
+  <div class="body">
+    <section class="fld"><label>Your name</label><input class="tin" id="liveName" maxlength="20"></section>
+    <section class="fld" id="liveOff"><label>Start a session</label>
+      <p class="note">Peer to peer: sketches go directly between browsers. Other tabs on this device join instantly.</p>
+      <div class="row2" style="margin-top:8px"><button class="btn solid" id="bLiveStart">Start live session</button></div>
+      <div class="row2" style="margin-top:8px"><input class="tin mono" id="liveJoinIn" placeholder="or paste an invite link / room code"><button class="btn" id="bLiveJoin">Join</button></div>
+    </section>
+    <section class="fld" id="liveOn" hidden><label>Invite</label>
+      <div class="row2"><input class="tin mono" id="liveUrl" readonly><button class="btn solid" id="bLiveCopy">Copy</button></div>
+      <div id="livePeople" class="people"></div>
+      <p class="note" id="liveStat"></p>
+      <div class="row2" style="margin-top:8px"><button class="btn" id="bLiveLeave">Leave session</button></div>
+    </section>
+  </div>
+</div></div>
 <p class="toast" id="toast"></p>
 <style id="customTheme"></style>
 
-<script src="../js/mirage.js?v=6" defer></script>
+<script src="../js/mirage.js?v=7" defer></script>
+<script src="../js/mirage-tools.js?v=1" defer></script>
+<script src="../js/mirage-import.js?v=1" defer></script>
+<script src="../js/mirage-ai.js?v=1" defer></script>
+<script src="../js/mirage-live.js?v=1" defer></script>
 </body>
 </html>
