@@ -49,7 +49,7 @@ Mirage is static files. No framework, no bundler, no server.
 
 ```bash
 # Clone the repository
-git clone https://github.com/Veer1778/Mirage.git
+git clone https://github.com/imveersolanki/Mirage.git
 cd Mirage
 
 # Serve it (any static server works)
@@ -138,10 +138,10 @@ All in the browser, nothing uploaded.
 ## ⌨️ CLI
 
 ```bash
-npx github:Veer1778/Mirage build sketch.json --target site --out dist
-npx github:Veer1778/Mirage build sketch.json --target next --out app
-npx github:Veer1778/Mirage check sketch.json     # exits 1 on errors
-npx github:Veer1778/Mirage css --all-themes      # the stylesheet on its own
+npx github:imveersolanki/Mirage build sketch.json --target site --out dist
+npx github:imveersolanki/Mirage build sketch.json --target next --out app
+npx github:imveersolanki/Mirage check sketch.json     # exits 1 on errors
+npx github:imveersolanki/Mirage css --all-themes      # the stylesheet on its own
 ```
 
 The CLI runs the same core modules as the editor, so its pages match the editor's export byte for byte.
@@ -219,4 +219,4 @@ Contributions are welcome. The most useful thing you can send is a sketch Mirage
 
 ---
 
-Made with 🖤 by [Veer](https://github.com/Veer1778) for CodeStorm 2026
+Made with 🖤 by [Veer](https://github.com/imveersolanki) for CodeStorm 2026
