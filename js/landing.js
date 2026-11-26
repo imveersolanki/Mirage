@@ -220,17 +220,6 @@ const io = new IntersectionObserver(es=>{
 },{threshold:0, rootMargin:'0px 0px 8% 0px'});
 document.querySelectorAll('.rv').forEach((el,i)=>{ el.style.transitionDelay=(i%2*50)+'ms'; io.observe(el); });
 
-// -------------------------------------------------- clips play only while on screen
-(() => {
-  const vids = document.querySelectorAll('.clip video');
-  if(reduce || !vids.length) return;
-  const vio = new IntersectionObserver(es => es.forEach(e => {
-    const v = e.target;
-    if(e.isIntersecting){ if(v.preload==='none') v.preload='auto'; v.play().catch(()=>{}); } else v.pause();
-  }), {threshold:0.35});
-  vids.forEach(v => vio.observe(v));
-})();
-
 // -------------------------------------------------- counters
 const cio = new IntersectionObserver(es=>{
   es.forEach(e=>{

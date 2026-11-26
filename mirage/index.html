@@ -9,54 +9,52 @@
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
 <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700;800&family=Archivo+Black&family=Bebas+Neue&family=Caveat:wght@400;700&family=Cormorant+Garamond:wght@300;400;600;700&family=DM+Sans:wght@400;500;700&family=EB+Garamond:wght@400;500;600&family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,900&family=IBM+Plex+Sans:wght@400;500;600;700&family=Instrument+Serif:ital@0;1&family=JetBrains+Mono:wght@400;500;700&family=Kalam:wght@400;700&family=Libre+Baskerville:wght@400;700&family=Lora:wght@400;500;600;700&family=Manrope:wght@400;500;700;800&family=Nunito:wght@400;600;700;900&family=Orbitron:wght@400;700;900&family=Oswald:wght@400;500;600;700&family=Playfair+Display:wght@400;500;700;800;900&family=Poiret+One&family=Roboto:wght@400;500;700;900&family=Sora:wght@400;600;800&family=Source+Serif+4:wght@400;600;700&family=Space+Grotesk:wght@400;500;600;700&family=Space+Mono:wght@400;700&family=Syne:wght@400;600;800&family=VT323&family=Work+Sans:wght@400;500;700;800&display=swap" rel="stylesheet">
 <link rel="icon" href="../favicon.svg" type="image/svg+xml">
-<link rel="stylesheet" href="../css/mirage.css?v=8">
+<link rel="stylesheet" href="../css/mirage.css?v=9">
 <link rel="stylesheet" href="../css/themes.css?v=6">
+<link rel="stylesheet" href="../css/themes-extra.css?v=1">
+<link rel="stylesheet" href="../css/themes-looks.css?v=1">
 </head>
 <body>
 <div id="app">
 
 <header>
   <a class="brand" href="/" title="Back to the homepage">
-    <svg width="12" height="12" viewBox="0 0 12 12" fill="none" aria-hidden="true"><path d="M7.5 1.5L3 6l4.5 4.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="square"/></svg>
-    <b>Mirage</b>
+    <span class="mark" aria-hidden="true"><i></i><i></i><i></i></span><b>Mirage</b>
   </a>
-
+  <span class="sep"></span>
+  <button class="btn ico" id="bProjects" title="Projects (⌘P)"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg></button>
   <div class="pname">
     <span id="projName" contenteditable="true" spellcheck="false">Untitled sketch</span>
     <i id="savedAt"></i>
   </div>
-
-  <div class="grp">
-    <button class="btn" id="bUndo" title="Undo">Undo</button>
-    <button class="btn" id="bRedo" title="Redo">Redo</button>
-    <span class="rule"></span>
-    <button class="btn" id="bTidy">Tidy</button>
-    <button class="btn" id="bClear">Clear</button>
-    <button class="btn on" id="bLabels">Labels</button>
+  <div class="grp hist">
+    <button class="btn ico" id="bUndo" title="Undo (⌘Z)" aria-label="Undo"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 14 4 9l5-5"/><path d="M4 9h11a5 5 0 0 1 0 10h-3"/></svg></button>
+    <button class="btn ico" id="bRedo" title="Redo (⇧⌘Z)" aria-label="Redo"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 14 5-5-5-5"/><path d="M20 9H9a5 5 0 0 0 0 10h3"/></svg></button>
   </div>
 
-  <div class="grp tools">
-    <button class="btn" id="bAI" title="Write copy, palettes and layouts with Gemini">AI</button>
-    <button class="btn" id="bImport" title="Turn a photo or screenshot into a sketch">Import</button>
-    <button class="btn" id="bSnips" title="Saved groups of rows">Snippets</button>
-    <button class="btn" id="bVers" title="Named versions">Versions</button>
-    <button class="btn" id="bComps" title="Your own components">Components</button>
-    <button class="btn" id="bLive" title="Sketch together"><span class="livedot" id="liveDot"></span>Live</button>
-    <button class="btn" id="bShare" title="Share link, Figma, deploy">Share</button>
+  <div class="grp main">
+    <button class="btn" id="bImport" title="Turn a photo or screenshot into a sketch"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2"/><circle cx="9" cy="11" r="2"/><path d="m21 16-5-5-8 8"/></svg><span>Import</span></button>
+    <button class="btn" id="bAI" title="Write copy, palettes and layouts with Gemini"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v4M12 17v4M3 12h4M17 12h4M6 6l2 2M16 16l2 2M6 18l2-2M16 8l2-2"/></svg><span>AI</span></button>
+    <button class="btn" id="bLive" title="Sketch together"><span class="livedot" id="liveDot"></span><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="8" r="3"/><path d="M3 20a6 6 0 0 1 12 0"/><circle cx="17" cy="9" r="2.5"/><path d="M16 14a5 5 0 0 1 5 5"/></svg><span>Live</span></button>
+    <button class="btn" id="bShare" title="Share link, Figma, deploy"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 12v7a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-7"/><path d="m16 6-4-4-4 4"/><path d="M12 2v13"/></svg><span>Share</span></button>
   </div>
 
   <div class="grp end">
-    <button class="btn ico" id="bCmd" title="Command palette (⌘K)">⌘K</button>
-    <button class="btn" id="bDesign">Design</button>
-    <button class="btn" id="bProjects">Projects</button>
-    <span class="rule"></span>
-    <button class="btn ico" id="bDark" title="Dark mode">
-      <svg width="13" height="13" viewBox="0 0 13 13" fill="none"><path d="M11 7.8A4.8 4.8 0 015.2 2 5 5 0 106.9 11 5 5 0 0011 7.8z" stroke="currentColor" stroke-width="1.2" stroke-linejoin="round"/></svg>
-    </button>
-    <button class="btn ico" id="bKeys" title="Shortcuts">
-      <svg width="13" height="13" viewBox="0 0 13 13" fill="none"><rect x="1" y="3" width="11" height="7" stroke="currentColor" stroke-width="1.1"/><path d="M3.5 5.5h.01M6.5 5.5h.01M9.5 5.5h.01M4 8h5" stroke="currentColor" stroke-width="1.1" stroke-linecap="round"/></svg>
-    </button>
-    <button class="btn solid" id="bExport">Export</button>
+    <div class="more">
+      <button class="btn ico" id="bMore" title="More" aria-haspopup="menu" aria-expanded="false"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="5" cy="12" r="1.2"/><circle cx="12" cy="12" r="1.2"/><circle cx="19" cy="12" r="1.2"/></svg></button>
+      <div class="menu" id="moreMenu" role="menu">
+        <button role="menuitem" id="bCmd"><span>Command palette</span><kbd>⌘K</kbd></button>
+        <button role="menuitem" id="bDesign"><span>Design system</span></button>
+        <button role="menuitem" id="bComps"><span>Components</span></button>
+        <button role="menuitem" id="bSnips"><span>Snippets</span></button>
+        <button role="menuitem" id="bVers"><span>Versions</span></button>
+        <hr>
+        <button role="menuitem" id="bClear"><span>Clear page</span></button>
+        <button role="menuitem" id="bDark"><span>Dark mode</span><kbd>D</kbd></button>
+        <button role="menuitem" id="bKeys"><span>Keyboard shortcuts</span></button>
+      </div>
+    </div>
+    <button class="btn solid" id="bExport"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v12"/><path d="m7 10 5 5 5-5"/><path d="M5 21h14"/></svg><span>Export</span></button>
   </div>
 </header>
 
@@ -157,6 +155,12 @@
   <!-- ===================== draft ===================== -->
   <section id="draft">
     <div id="scroll"><canvas id="sk"></canvas></div>
+    <div class="dock" role="toolbar" aria-label="Canvas">
+      <button class="btn on" id="bLabels" title="Show labels (L)">Labels</button>
+      <button class="btn" id="bTidy" title="Tidy into rows (T)">Tidy</button>
+      <span class="rule"></span>
+      <button id="zOut" class="btn ico" aria-label="Zoom out" title="Zoom out">−</button><button id="zoomLbl" class="btn zl" title="Reset zoom">100%</button><button id="zIn" class="btn ico" aria-label="Zoom in" title="Zoom in">+</button>
+    </div>
     <div class="splitter" id="splitter" role="separator" aria-orientation="vertical" aria-label="Resize sketch and preview" tabindex="0" title="Drag to resize"></div>
     <div class="blank" id="blank">
       <p class="s">Nothing drawn yet</p>
@@ -204,6 +208,53 @@
             <option value="sketch">Sketch</option><option value="industrial">Industrial</option>
             <option value="retro">Retro</option>
           </optgroup>
+          <optgroup label="Editor classics">
+            <option value="nord">Nord</option><option value="nord-light">Nord Light</option>
+            <option value="dracula">Dracula</option><option value="solarized">Solarized</option>
+            <option value="solarized-dark">Solarized Dark</option><option value="gruvbox">Gruvbox</option>
+            <option value="catppuccin">Catppuccin</option><option value="rose-pine">Rosé Pine</option>
+            <option value="tokyo-night">Tokyo Night</option>
+          </optgroup>
+          <optgroup label="Character">
+            <option value="blueprint">Blueprint</option><option value="riso">Riso</option>
+            <option value="matcha">Matcha</option><option value="sunset">Sunset</option>
+            <option value="oceanic">Oceanic</option><option value="candy">Candy</option>
+            <option value="glass">Glass</option><option value="corporate">Corporate</option>
+            <option value="zine">Zine</option>
+          </optgroup>
+          <optgroup label="Accessible">
+            <option value="high-contrast">High Contrast</option>
+          </optgroup>
+          <optgroup label="Looks · products">
+            <option value="clear-day">Clear Day</option><option value="paper-trail">Paper Trail</option><option value="boardroom">Boardroom</option><option value="strong-room">Strong Room</option><option value="daybook">Daybook</option>
+          </optgroup>
+          <optgroup label="Looks · developer">
+            <option value="bare-metal">Bare Metal</option><option value="basalt">Basalt</option><option value="piano-black">Piano Black</option><option value="night-launch">Night Launch</option><option value="control-room">Control Room</option><option value="handbook">Handbook</option><option value="nightfall">Nightfall</option><option value="draft-room">Draft Room</option><option value="garage">Garage</option>
+          </optgroup>
+          <optgroup label="Looks · launches and apps">
+            <option value="first-light">First Light</option><option value="soft-launch">Soft Launch</option><option value="daybreak">Daybreak</option><option value="playground">Playground</option><option value="night-swim">Night Swim</option>
+          </optgroup>
+          <optgroup label="Looks · studios and brands">
+            <option value="billboard">Billboard</option><option value="poster">Poster</option><option value="after-hours">After Hours</option><option value="velvet">Velvet</option><option value="ink-editorial">Ink Editorial</option><option value="lens">Lens</option>
+          </optgroup>
+          <optgroup label="Looks · shops and makers">
+            <option value="storefront">Storefront</option><option value="sorbet">Sorbet</option><option value="brown-paper">Brown Paper</option><option value="north-light">North Light</option><option value="corkboard">Corkboard</option>
+          </optgroup>
+          <optgroup label="Looks · writing and media">
+            <option value="sunday-paper">Sunday Paper</option><option value="lamplight">Lamplight</option><option value="postcard">Postcard</option><option value="small-hours">Small Hours</option><option value="pressroom">Pressroom</option>
+          </optgroup>
+          <optgroup label="Looks · events">
+            <option value="lanyard">Lanyard</option><option value="marquee">Marquee</option>
+          </optgroup>
+          <optgroup label="Looks · local and community">
+            <option value="main-street">Main Street</option><option value="supper">Supper</option><option value="brickwork">Brickwork</option><option value="village-hall">Village Hall</option><option value="allotment">Allotment</option>
+          </optgroup>
+          <optgroup label="Looks · learning">
+            <option value="study-hall">Study Hall</option><option value="chalkboard">Chalkboard</option><option value="exercise-book">Exercise Book</option>
+          </optgroup>
+          <optgroup label="Looks · reports">
+            <option value="field-report">Field Report</option>
+          </optgroup>
           <optgroup label="Dark">
             <option value="modern-dark">Modern Dark</option><option value="minimal-dark">Minimal Dark</option>
             <option value="bold-typography">Bold Typography</option><option value="kinetic">Kinetic</option>
@@ -229,9 +280,8 @@
 <footer>
   <span class="hint"><b>Surface</b> · <span id="ovCols">16</span> col</span>
   <span class="hint"><b>drag</b> to draw</span><span class="hint"><b>drag a box</b> to move</span>
-  <span class="hint"><b>handles</b> to resize</span><span class="hint"><b>alt-drag</b> inside to nest</span><span class="hint"><b>side by side</b> is a row</span>
+  <span class="hint"><b>alt-drag</b> inside to nest</span>
   <span class="sp"></span>
-  <span class="zoom" title="Zoom the sketch: ctrl or ⌘ + scroll, or pinch"><button id="zOut" aria-label="Zoom out">−</button><button id="zoomLbl" title="Reset zoom">100%</button><button id="zIn" aria-label="Zoom in">+</button></span>
   <span id="ftSel">no selection</span><span>·</span><span>MIT</span>
 </footer>
 </div>
@@ -499,5 +549,6 @@
 <script src="../js/mirage-media.js?v=1" defer></script>
 <script src="../js/mirage-quality.js?v=1" defer></script>
 <script src="../js/mirage-components.js?v=1" defer></script>
+<script src="../js/mirage-themes.js?v=1" defer></script>
 </body>
 </html>

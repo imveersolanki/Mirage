@@ -502,6 +502,7 @@ const CMDS = () => {
   add('Share','Go live',click('bLive'));
   add('Project','Projects',click('bProjects'),'⌘P'); add('Project','New project',click('bNewProj'));
   add('Project','Design system',click('bDesign'));
+  add('Style','Browse all styles',() => M.openThemes && M.openThemes());
   add('Project','Save a version',() => { saveVersion(); M.toast('Version saved'); });
   add('Project','Versions',click('bVers'));
   add('Project','Snippets',openSnips);
@@ -555,6 +556,14 @@ document.addEventListener('keydown', e => {
   }
 });
 M.openCmd = openCmd;
+
+/* ============================================================ more menu */
+const menu = $('moreMenu'), more = $('bMore');
+const setMenu = on => { menu.classList.toggle('on', on); more.setAttribute('aria-expanded', on); more.classList.toggle('on', on); };
+more.onclick = e => { e.stopPropagation(); setMenu(!menu.classList.contains('on')); };
+menu.addEventListener('click', e => { if(e.target.closest('button')) setMenu(false); });
+document.addEventListener('click', e => { if(!e.target.closest('.more')) setMenu(false); });
+document.addEventListener('keydown', e => { if(e.key==='Escape') setMenu(false); });
 
 /* ============================================================ open a sketch file */
 function openJSON(text, name){

@@ -1,6 +1,6 @@
 {
   "name": "mirage-sketch",
-  "version": "0.7.0",
+  "version": "0.8.0",
   "description": "Draw a wireframe, get the page. An open source frontend builder that reads geometry.",
   "type": "module",
   "bin": { "mirage": "cli/mirage.mjs" },

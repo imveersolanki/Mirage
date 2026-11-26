@@ -129,7 +129,7 @@ function shaky(x,y,w,h){
 let drawing=null, guides=[];
 
 function paint(){
-  const g1=cssv('--sk-g1'), g2=cssv('--sk-g2'), inkc=cssv('--sk-ink'), red=cssv('--red'), rowc=cssv('--sk-row');
+  const g1=cssv('--sk-g1'), g2=cssv('--sk-g2'), inkc=cssv('--sk-ink'), red=cssv('--red'), rowc=cssv('--sk-row'), acc=cssv('--acc')||red;
   ctx.clearRect(0,0,W,H);
   const rows=Math.ceil(H/cell), M=4;
   ctx.globalAlpha=.5; ctx.strokeStyle=g2; ctx.lineWidth=1; ctx.beginPath();
@@ -161,9 +161,9 @@ function paint(){
 
   info.list.forEach((b,i)=>{
     const g=px(b), isSel=i===sel;
-    ctx.fillStyle=isSel?'rgba(227,6,19,.10)':'rgba(0,0,0,.045)';
-    ctx.fillRect(g.x,g.y,g.w,g.h);
-    ctx.strokeStyle=isSel?red:(b.locked?inkc:inkc);
+    ctx.fillStyle=isSel?acc:'rgba(0,0,0,.045)'; ctx.globalAlpha=isSel?.1:1;
+    ctx.fillRect(g.x,g.y,g.w,g.h); ctx.globalAlpha=1;
+    ctx.strokeStyle=isSel?acc:inkc;
     ctx.lineWidth=isSel?2:(b.locked?1.7:1.2);
     if(b.shape==='circle'){ ctx.beginPath(); ctx.ellipse(g.x+g.w/2,g.y+g.h/2,g.w/2,g.h/2,0,0,6.283); ctx.stroke(); }
     else shaky(g.x,g.y,g.w,g.h);
@@ -183,7 +183,7 @@ function paint(){
       while(tw>room&&txt.length>2){ txt=txt.slice(0,-2)+'\u2026'; tw=ctx.measureText(txt).width; }
       const lx=g.x+4, ly=g.y+4;
       ctx.globalAlpha=b.merged?.55:1;
-      ctx.fillStyle=isSel?red:inkc; ctx.fillRect(lx,ly,tw+10,15);
+      ctx.fillStyle=isSel?acc:inkc; ctx.fillRect(lx,ly,tw+10,15);
       ctx.fillStyle=cssv('--paper');
       ctx.textBaseline='middle'; ctx.textAlign='left'; ctx.fillText(txt,lx+5,ly+7.5);
       ctx.globalAlpha=1;
@@ -197,22 +197,22 @@ function paint(){
       }
     }
     if(isSel){
-      ctx.fillStyle=cssv('--paper'); ctx.strokeStyle=red; ctx.lineWidth=1.4;
+      ctx.fillStyle=cssv('--paper'); ctx.strokeStyle=acc; ctx.lineWidth=1.4;
       handles(b).forEach(h=>{ ctx.fillRect(h.x-4,h.y-4,8,8); ctx.strokeRect(h.x-4,h.y-4,8,8); });
     }
   });
 
   emit('paint',{ctx,cell,W,H});
   guides.forEach(gd=>{
-    ctx.strokeStyle=red; ctx.lineWidth=1; ctx.setLineDash([3,3]); ctx.beginPath();
+    ctx.strokeStyle=acc; ctx.lineWidth=1; ctx.setLineDash([3,3]); ctx.beginPath();
     if(gd.v){ ctx.moveTo(gd.p,0); ctx.lineTo(gd.p,H); } else { ctx.moveTo(0,gd.p); ctx.lineTo(W,gd.p); }
     ctx.stroke(); ctx.setLineDash([]);
   });
   if(drawing){
     const r=drawRect();
-    ctx.strokeStyle=red; ctx.lineWidth=1.6; ctx.setLineDash([5,4]);
+    ctx.strokeStyle=acc; ctx.lineWidth=1.6; ctx.setLineDash([5,4]);
     ctx.strokeRect(r.cx*cell,r.cy*cell,r.cw*cell,r.ch*cell); ctx.setLineDash([]);
-    ctx.fillStyle=red; ctx.font='400 9px "IBM Plex Mono", monospace';
+    ctx.fillStyle=acc; ctx.font='400 9px "IBM Plex Mono", monospace';
     ctx.fillText(r.cw+'\u00d7'+r.ch, r.cx*cell+4, Math.max(9,r.cy*cell-5));
   }
 }
@@ -1306,6 +1306,7 @@ window.Mirage={
 resize();
 hist=[[]]; hi=0; syncHist();
 syncDesignForm(); applyDesign();
+$('themeSel').value=theme;   // the menu's first option is Custom; keep it in step with the real style
 commit(false); syncPages();
 emit('ready');
 const boot=(/^#(s|live)=/.test(location.hash)||/[?&]example=/.test(location.search)) ? Promise.resolve() : STORE.all().then(all=>{

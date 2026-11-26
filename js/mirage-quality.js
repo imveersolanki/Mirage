@@ -38,7 +38,7 @@ function checks(){
   const r1 = ratio(fg,bg);
   if(r1 < 4.5) add('err', '<b>Body text contrast is '+r1.toFixed(2)+':1</b> in '+style+'. It needs at least 4.5:1.', M.theme==='__custom' ? ['Open Design', () => $('bDesign').click()] : null);
   if(mut){ const r2 = ratio(mut,bg); if(r2 < 4.5) add(r2<3?'err':'warn', '<b>Secondary text contrast is '+r2.toFixed(2)+':1</b> in '+style+'. Aim for 4.5:1.', M.theme==='__custom' ? ['Open Design', () => $('bDesign').click()] : null); }
-  if(acc){ const r3 = Math.max(ratio('#fff',acc), ratio(fg,acc)); if(r3 < 4.5) add('warn', '<b>Button text on the accent colour is '+r3.toFixed(2)+':1.</b> Aim for 4.5:1.', M.theme==='__custom' ? ['Open Design', () => $('bDesign').click()] : null); }
+  if(acc){ const r3 = ratio(bg,acc); if(r3 < 4.5) add('warn', '<b>Buttons and links in the accent colour are '+r3.toFixed(2)+':1</b> against the page. Aim for 4.5:1.', M.theme==='__custom' ? ['Open Design', () => $('bDesign').click()] : null); }
   const D = M.D, defaults = new Set();
   const walk = v2 => { if(Array.isArray(v2)) v2.forEach(walk); else if(typeof v2==='string') defaults.add(v2); };
   Object.values(D).forEach(walk);

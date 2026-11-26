@@ -1,0 +1,74 @@
+/* =====================================================================
+   Mirage v0.8: 19 more styles. Same tokens as themes.css; buttons use
+   --c-bg on --c-acc, so every accent below passes 4.5:1 against the page.
+   ===================================================================== */
+
+/* ---------------- editor favourites, dark ---------------- */
+#sheet.th-nord{--c-bg:#2E3440;--c-fg:#ECEFF4;--c-mut:#C3CAD6;--c-line:#3F4758;--c-acc:#88C0D0;
+  --c-r:8px;--c-bw:1px;--c-sh:none;--c-tt:-.025em;--c-hw:700;--c-fd:"Inter",sans-serif;--c-fb:"Inter",sans-serif}
+#sheet.th-nord .c-card,#sheet.th-nord .c-price .p{background:#3B4252}
+#sheet.th-dracula{--c-bg:#282A36;--c-fg:#F8F8F2;--c-mut:#C5C9DC;--c-line:#44475A;--c-acc:#FF79C6;
+  --c-r:10px;--c-bw:1px;--c-sh:none;--c-tt:-.03em;--c-hw:800;--c-fd:"Space Grotesk",sans-serif;--c-fb:"Inter",sans-serif}
+#sheet.th-dracula .c-hero :is(h1,h2){background:linear-gradient(90deg,#FF79C6,#BD93F9);-webkit-background-clip:text;background-clip:text;color:transparent}
+#sheet.th-dracula .c-card{background:#2F3242}
+#sheet.th-solarized-dark{--c-bg:#002B36;--c-fg:#EEE8D5;--c-mut:#A3B2B2;--c-line:#0E3D49;--c-acc:#2AA198;
+  --c-r:4px;--c-bw:1px;--c-sh:none;--c-tt:-.02em;--c-hw:700;--c-fd:"IBM Plex Sans",sans-serif;--c-fb:"IBM Plex Sans",sans-serif}
+#sheet.th-gruvbox{--c-bg:#282828;--c-fg:#EBDBB2;--c-mut:#BDAE93;--c-line:#3C3836;--c-acc:#FABD2F;
+  --c-r:3px;--c-bw:1px;--c-sh:none;--c-tt:-.02em;--c-hw:700;--c-fd:"JetBrains Mono",monospace;--c-fb:"IBM Plex Sans",sans-serif}
+#sheet.th-gruvbox .c-hero :is(h1,h2){font-size:clamp(28px,4.4vw,46px);letter-spacing:-.04em}
+#sheet.th-catppuccin{--c-bg:#1E1E2E;--c-fg:#CDD6F4;--c-mut:#A6ADC8;--c-line:#313244;--c-acc:#CBA6F7;
+  --c-r:14px;--c-bw:1px;--c-sh:0 6px 24px rgba(0,0,0,.25);--c-pad:30px;--c-tt:-.03em;--c-hw:800;--c-fd:"Sora",sans-serif;--c-fb:"Inter",sans-serif}
+#sheet.th-catppuccin .c-card,#sheet.th-catppuccin .c-price .p{background:#181825}
+#sheet.th-rose-pine{--c-bg:#191724;--c-fg:#E0DEF4;--c-mut:#A9A5C4;--c-line:#26233A;--c-acc:#EBBCBA;
+  --c-r:12px;--c-bw:1px;--c-sh:none;--c-tt:-.02em;--c-hw:400;--c-fd:"Instrument Serif",Georgia,serif;--c-fb:"DM Sans",sans-serif}
+#sheet.th-rose-pine .c-hero :is(h1,h2){font-size:clamp(36px,5.8vw,64px);letter-spacing:-.02em}
+#sheet.th-tokyo-night{--c-bg:#1A1B26;--c-fg:#C0CAF5;--c-mut:#9AA5CE;--c-line:#292E42;--c-acc:#7AA2F7;
+  --c-r:8px;--c-bw:1px;--c-sh:none;--c-tt:-.03em;--c-hw:800;--c-fd:"Manrope",sans-serif;--c-fb:"Manrope",sans-serif}
+#sheet.th-tokyo-night .c-hero{background:radial-gradient(ellipse at 20% 0%,rgba(122,162,247,.18),transparent 60%)}
+#sheet.th-high-contrast{--c-bg:#000000;--c-fg:#FFFFFF;--c-mut:#E6E6E6;--c-line:#FFFFFF;--c-acc:#FFD400;
+  --c-r:0px;--c-bw:2px;--c-sh:none;--c-tt:-.02em;--c-hw:900;--c-pad:30px;--c-fd:"Inter",sans-serif;--c-fb:"Inter",sans-serif}
+#sheet.th-high-contrast .c-hero p,#sheet.th-high-contrast .c-text p{font-size:17px}
+#sheet.th-high-contrast a,#sheet.th-high-contrast .c-nav .ln span{text-decoration:underline;text-underline-offset:3px}
+
+/* ---------------- editor favourites, light ---------------- */
+#sheet.th-nord-light{--c-bg:#ECEFF4;--c-fg:#2E3440;--c-mut:#4C566A;--c-line:#D8DEE9;--c-acc:#4C6A92;
+  --c-r:8px;--c-bw:1px;--c-sh:none;--c-tt:-.025em;--c-hw:700;--c-fd:"Inter",sans-serif;--c-fb:"Inter",sans-serif}
+#sheet.th-nord-light .c-card{background:#E5E9F0}
+#sheet.th-solarized{--c-bg:#FDF6E3;--c-fg:#073642;--c-mut:#4F6268;--c-line:#EEE8D5;--c-acc:#1F6FA8;
+  --c-r:4px;--c-bw:1px;--c-sh:none;--c-tt:-.02em;--c-hw:700;--c-fd:"IBM Plex Sans",sans-serif;--c-fb:"IBM Plex Sans",sans-serif}
+
+/* ---------------- character ---------------- */
+#sheet.th-blueprint{--c-bg:#123A6B;--c-fg:#EEF5FF;--c-mut:#BBD2F2;--c-line:#5F8BC4;--c-acc:#FFFFFF;
+  --c-r:0px;--c-bw:1px;--c-sh:none;--c-tt:.01em;--c-hw:700;--c-fd:"Space Mono",monospace;--c-fb:"IBM Plex Mono",monospace;
+  background-image:linear-gradient(rgba(255,255,255,.07) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.07) 1px,transparent 1px);background-size:22px 22px}
+#sheet.th-blueprint .c-row>*+*,#sheet.th-blueprint .c-nav,#sheet.th-blueprint .c-card{border-style:dashed}
+#sheet.th-blueprint .c-hero :is(h1,h2){text-transform:uppercase;font-size:clamp(26px,4.2vw,44px);letter-spacing:.02em}
+#sheet.th-blueprint .c-img{background:transparent;border:1px dashed var(--c-line);color:var(--c-mut)}
+#sheet.th-riso{--c-bg:#F6F1E7;--c-fg:#22205C;--c-mut:#4A4880;--c-line:#22205C;--c-acc:#C2186C;
+  --c-r:0px;--c-bw:2px;--c-sh:4px 4px 0 #0078BF;--c-tt:-.04em;--c-hw:900;--c-fd:"Archivo Black",sans-serif;--c-fb:"Work Sans",sans-serif}
+#sheet.th-riso .c-hero :is(h1,h2){color:#0078BF;mix-blend-mode:multiply;text-shadow:3px 3px 0 rgba(255,72,176,.55)}
+#sheet.th-riso .c-card,#sheet.th-riso .c-price .p{box-shadow:4px 4px 0 #FF48B0}
+#sheet.th-matcha{--c-bg:#F3F5EC;--c-fg:#233020;--c-mut:#4F5E49;--c-line:#DCE3D0;--c-acc:#3F6B2C;
+  --c-r:16px;--c-bw:1px;--c-sh:0 2px 0 #DCE3D0;--c-pad:32px;--c-tt:-.02em;--c-hw:600;--c-fd:"Fraunces",Georgia,serif;--c-fb:"DM Sans",sans-serif}
+#sheet.th-matcha .c-card{background:#FBFCF7}
+#sheet.th-sunset{--c-bg:#FFF4EC;--c-fg:#3A1D1D;--c-mut:#734A41;--c-line:#F3D6C4;--c-acc:#B93C0B;
+  --c-r:12px;--c-bw:1px;--c-sh:none;--c-tt:-.035em;--c-hw:800;--c-fd:"Syne",sans-serif;--c-fb:"DM Sans",sans-serif}
+#sheet.th-sunset .c-hero{background:linear-gradient(160deg,#FFE3CF 0%,#FFF4EC 55%,#FFE9EF 100%)}
+#sheet.th-oceanic{--c-bg:#F2F8FB;--c-fg:#0E2A3B;--c-mut:#41606F;--c-line:#D3E5EE;--c-acc:#0B6577;
+  --c-r:12px;--c-bw:1px;--c-sh:0 4px 16px rgba(14,42,59,.06);--c-pad:30px;--c-tt:-.03em;--c-hw:800;--c-fd:"Manrope",sans-serif;--c-fb:"Manrope",sans-serif}
+#sheet.th-oceanic .c-card{background:#FFFFFF}
+#sheet.th-candy{--c-bg:#FFF7FB;--c-fg:#3B1A3A;--c-mut:#714A6A;--c-line:#F6DCEB;--c-acc:#A3226D;
+  --c-r:22px;--c-bw:1px;--c-sh:0 6px 0 #F6DCEB;--c-pad:30px;--c-tt:-.02em;--c-hw:900;--c-fd:"Nunito",sans-serif;--c-fb:"Nunito",sans-serif}
+#sheet.th-candy .c-hero .b1,#sheet.th-candy .c-nav .cta{border-radius:999px}
+#sheet.th-glass{--c-bg:#EEF0FF;--c-fg:#1E1B4B;--c-mut:#47457A;--c-line:rgba(79,70,229,.16);--c-acc:#4338CA;
+  --c-r:18px;--c-bw:1px;--c-sh:0 8px 30px rgba(30,27,75,.08);--c-pad:30px;--c-tt:-.035em;--c-hw:800;--c-fd:"Sora",sans-serif;--c-fb:"Inter",sans-serif;
+  background:radial-gradient(circle at 15% 10%,#D9DEFF 0,transparent 40%),radial-gradient(circle at 85% 30%,#FFDDF0 0,transparent 35%),#EEF0FF}
+#sheet.th-glass .c-card,#sheet.th-glass .c-price .p,#sheet.th-glass .c-nav{background:rgba(255,255,255,.55);backdrop-filter:blur(12px)}
+#sheet.th-corporate{--c-bg:#FFFFFF;--c-fg:#0F172A;--c-mut:#475569;--c-line:#E2E8F0;--c-acc:#0A58CA;
+  --c-r:6px;--c-bw:1px;--c-sh:0 1px 2px rgba(15,23,42,.06);--c-tt:-.02em;--c-hw:700;--c-fd:"IBM Plex Sans",sans-serif;--c-fb:"IBM Plex Sans",sans-serif}
+#sheet.th-corporate .c-nav{border-bottom-width:1px;box-shadow:0 1px 0 #E2E8F0}
+#sheet.th-zine{--c-bg:#FFFDF5;--c-fg:#111111;--c-mut:#3D3D3D;--c-line:#111111;--c-acc:#C42A20;
+  --c-r:0px;--c-bw:2px;--c-sh:none;--c-tt:-.01em;--c-hw:400;--c-fd:"Bebas Neue",sans-serif;--c-fb:"Courier New",monospace}
+#sheet.th-zine .c-hero :is(h1,h2){font-size:clamp(44px,8vw,96px);line-height:.88;transform:rotate(-1.5deg)}
+#sheet.th-zine .c-card:nth-child(odd){transform:rotate(-.8deg)}#sheet.th-zine .c-card:nth-child(even){transform:rotate(.8deg)}
+#sheet.th-zine .c-img{background:repeating-linear-gradient(45deg,#111 0 2px,transparent 2px 9px);color:#111}

@@ -46,7 +46,7 @@ const ext = u => { const m = /^data:image\/(\w+)/.exec(u||''); return m ? (m[1]=
 const bytes = u => Buffer.from(u.slice(u.indexOf(',')+1), 'base64');
 
 function stylesheet(sk, opts){
-  const files = ['css/mirage.css', 'css/themes.css'].map(p => fs.readFileSync(path.join(ROOT, p), 'utf8'));
+  const files = ['css/mirage.css', 'css/themes.css', 'css/themes-extra.css', 'css/themes-looks.css'].map(p => fs.readFileSync(path.join(ROOT, p), 'utf8'));
   (sk ? sk.components : []).forEach(c => c.css && files.push(c.css));
   const {rules, frames} = exportCSS(files, {theme: opts.theme, allThemes: opts.allThemes});
   let css = rules.join('\n') + (frames.length ? '\n\n'+frames.join('\n') : '');

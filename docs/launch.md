@@ -16,15 +16,9 @@ and it builds the page, checks it, and exports HTML, React, Next.js and more.
 
 **Topics:** Design Tools, Developer Tools, Open Source, No-Code
 
-**Gallery (in order):**
-1. `media/demo-poster.jpg`: "Draw a box. Get a component."
-2. `media/clip-import.jpg`: "Photograph a paper sketch. Mirage finds every box, even tilted and smudged."
-3. `media/clip-ai.jpg`: "One line of brief writes the copy and picks a palette."
-4. `media/clip-live.jpg`: "Sketch together with named cursors. Peer to peer."
-5. `media/clip-ship.jpg`: "Accessibility and SEO checks, seven code targets, one-click deploy."
-6. `gallery/thumbs/bakery.webp`: "A real two-page site, drawn in Mirage."
-
-**Video:** `media/demo.mp4` (59 seconds, no audio; add captions or a voiceover before uploading).
+**Gallery (in order):** screenshots of the editor and `gallery/thumbs/*.webp`. Take fresh
+editor screenshots at 1270×760: an imported paper sketch, the AI panel, two
+people in a live session, and the Export panel.
 
 **Maker's first comment:**
 > Hi! I'm Veer, a designer and developer from Faridabad. I built Mirage for
@@ -68,10 +62,10 @@ Demo: mirageui.vercel.app · Code: github.com/Veer1778/Mirage
 
 ## X thread
 
-1. I got tired of describing websites to AI in paragraphs. So I built a tool where you just draw boxes. Mirage reads the geometry and builds the page. No prompt. 🧵 [demo.mp4]
-2. A full-width box at the top is a nav. Three equal boxes in a row are cards. A tall narrow box is a rail. If it's unsure, it shows you what else it could be. [clip-ai.mp4 or a screenshot of "also reads as"]
-3. New: photograph a sketch on paper. It straightens the photo, fixes broken lines, finds boxes inside boxes, and reads your handwritten labels. [clip-import.mp4]
-4. Then: AI copy with your own key, live editing with friends, accessibility and SEO checks, and export to HTML, React, Vue, Svelte, Astro, Next.js or a deployed site. [clip-ship.mp4]
+1. I got tired of describing websites to AI in paragraphs. So I built a tool where you just draw boxes. Mirage reads the geometry and builds the page. No prompt. 🧵
+2. A full-width box at the top is a nav. Three equal boxes in a row are cards. A tall narrow box is a rail. If it's unsure, it shows you what else it could be. [screenshot of "also reads as"]
+3. New: photograph a sketch on paper. It straightens the photo, fixes broken lines, finds boxes inside boxes, and reads your handwritten labels. [screenshot of an imported sketch]
+4. Then: AI copy with your own key, live editing with friends, accessibility and SEO checks, and export to HTML, React, Vue, Svelte, Astro, Next.js or a deployed site. [screenshot of Export]
 5. It's open source, runs entirely in your browser, no account. Try it: mirageui.vercel.app
 
 ## LinkedIn
@@ -94,5 +88,4 @@ especially sketches it misreads.
 - [ ] Publish `@mirage/ui` to npm (`cd packages/ui && npm run build && npm publish --access public`), or change the README to point at the GitHub path.
 - [ ] Submit the Figma plugin for review (Figma desktop → Plugins → Development → Publish).
 - [ ] Try Gemini, Netlify deploy and two-device live sessions once on real networks.
-- [ ] Add captions or a voiceover to `media/demo.mp4`.
 - [ ] Post Tuesday to Thursday, 12:01am Pacific for Product Hunt.

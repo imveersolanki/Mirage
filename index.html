@@ -20,7 +20,7 @@
 <!-- ================= nav ================= -->
 <nav>
   <div class="wrap in">
-    <a class="logo" href="#top"><b>Mirage</b><span>v0.7</span></a>
+    <a class="logo" href="#top"><b>Mirage</b><span>v0.8</span></a>
     <div class="lk">
       <a href="#how">How it reads</a>
       <a href="#library">Components</a>
@@ -63,7 +63,7 @@
       <a class="btn solid" href="/mirage">Start drawing, it is free</a>
       <a class="btn ghost" href="#how">See how it reads a box</a>
     </div>
-    <div class="tiny">MIT licensed · no account · runs entirely in the browser · <a href="#demo">watch the 60-second demo</a></div>
+    <div class="tiny">MIT licensed · no account · runs entirely in the browser</div>
 
     <!-- annotations -->
     <div class="anno" style="left:-2%;top:104px;animation-delay:1.7s">
@@ -197,7 +197,7 @@
     <div class="head rv">
       <span class="no">03</span>
       <h2>The structure is yours. The skin is a switch.</h2>
-      <p>35 styles, all pure design tokens. The markup never changes, so switching one does not touch a single line of your structure. Try four of them here.</p>
+      <p>100 styles, all pure design tokens. The markup never changes, so switching one does not touch a single line of your structure. Try four of them here.</p>
     </div>
     <div class="themes rv" id="themePick" role="tablist" aria-label="Preview a style">
       <button class="th on" data-sk="plain" role="tab" aria-selected="true"><div class="top th-a"><h4>Plain</h4><p>Neutral defaults. A sensible starting point for a product page.</p><span class="pill">Get started</span></div><div class="cap">preview <b>&rarr;</b></div></button>
@@ -206,7 +206,7 @@
       <button class="th" data-sk="terminal" role="tab" aria-selected="false"><div class="top th-d"><h4>Terminal</h4><p>Monospace everything on near-black. For developer tools.</p><span class="pill">./run</span></div><div class="cap">preview <b>&rarr;</b></div></button>
     </div>
     <div class="thprev rv">
-      <div class="bar"><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="nmn">same sketch · <b id="skName">Plain</b></span><span class="rt">+31 more in the editor</span></div>
+      <div class="bar"><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="nmn">same sketch · <b id="skName">Plain</b></span><span class="rt">+96 more in the editor</span></div>
       <div class="pv sk-plain" id="thPv"></div>
     </div>
   </div>
@@ -254,16 +254,6 @@
       <h2>From a napkin to a deployed site</h2>
       <p>Everything below runs in your browser. The only network calls are the ones you ask for: Gemini with your key, Netlify with your token.</p>
     </div>
-    <div class="clips rv">
-      <figure class="clip"><video src="./media/clip-import.mp4" poster="./media/clip-import.jpg" muted loop playsinline preload="none" aria-label="Importing a photo of a paper sketch"></video>
-        <figcaption><b>Photograph your sketch.</b> Mirage straightens the photo, closes gaps in your lines, finds every box including nested ones, and can read your handwritten labels.</figcaption></figure>
-      <figure class="clip"><video src="./media/clip-ai.mp4" poster="./media/clip-ai.jpg" muted loop playsinline preload="none" aria-label="AI writing copy and choosing a palette"></video>
-        <figcaption><b>Let it write.</b> One line of brief rewrites every heading and button, picks a palette and fonts, or drafts a whole layout. Bring your own Gemini key.</figcaption></figure>
-      <figure class="clip"><video src="./media/clip-live.mp4" poster="./media/clip-live.jpg" muted loop playsinline preload="none" aria-label="Two people sketching in the same session"></video>
-        <figcaption><b>Sketch together.</b> Send a link. Named cursors, and edits merge box by box, so two people never overwrite each other. Peer to peer, no Mirage server.</figcaption></figure>
-      <figure class="clip"><video src="./media/clip-ship.mp4" poster="./media/clip-ship.jpg" muted loop playsinline preload="none" aria-label="Checking, exporting and deploying"></video>
-        <figcaption><b>Ship it.</b> Accessibility and SEO checks, seven code targets plus a static site, and one-click deploy to Netlify. Or commit the sketch and build it in CI with the CLI.</figcaption></figure>
-    </div>
     <div class="feat rv">
       <div><b>Pages</b><span>Shared nav and footer, real links in the export.</span></div>
       <div><b>Images</b><span>Drop photos in; alt text is checked.</span></div>
@@ -273,9 +263,6 @@
       <div><b>Figma</b><span>A plugin both ways, layer names become types.</span></div>
       <div><b>CLI</b><span><code>mirage build sketch.json --target next</code></span></div>
       <div><b>@mirage/ui</b><span>The React components the export imports.</span></div>
-    </div>
-    <div class="demo rv" id="demo">
-      <video src="./media/demo.mp4" poster="./media/demo-poster.jpg" controls playsinline preload="none" aria-label="Sixty second demo of Mirage"></video>
     </div>
     <p class="rv" style="margin-top:18px"><a class="btn ghost" href="./gallery/">See the gallery</a></p>
   </div>
