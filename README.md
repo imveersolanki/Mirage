@@ -135,10 +135,6 @@ All in the browser, nothing uploaded.
 | 📚 Looks · learning | Study Hall, Chalkboard, Exercise Book |
 | 📊 Looks · reports | Field Report |
 
-The "Looks" are the 48 looks on [designprompts.dev](https://designprompts.dev), minus two Mirage already had (Default look is Plain, and Terminal). designprompts.dev publishes a description for each look rather than its tokens, so Mirage's versions are built from those descriptions.
-
-Every style added in v0.8 (65 of them) is tested to keep body text, secondary text and buttons at 4.5:1 or better, and a test fails if any style is defined twice.
-
 ## ⌨️ CLI
 
 ```bash
