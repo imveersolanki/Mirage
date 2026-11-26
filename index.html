@@ -8,7 +8,8 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700;800;900&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="./css/landing.css?v=4">
+<link rel="stylesheet" href="./css/landing.css?v=5">
+<script>document.documentElement.classList.add('js')</script>
 </head>
 <body>
 
@@ -18,7 +19,7 @@
 <!-- ================= nav ================= -->
 <nav>
   <div class="wrap in">
-    <a class="logo" href="#top"><b>Mirage</b><span>v0.2</span></a>
+    <a class="logo" href="#top"><b>Mirage</b><span>v0.5</span></a>
     <div class="lk">
       <a href="#how">How it reads</a>
       <a href="#library">Components</a>
@@ -64,16 +65,10 @@
 
     <!-- annotations -->
     <div class="anno" style="left:-2%;top:104px;animation-delay:1.7s">
-      <div class="dim" style="width:132px"><span>12 col</span><s></s></div>
+      <div class="dim" style="width:132px"><span>16 col</span><s></s></div>
     </div>
     <div class="anno" style="right:-1%;top:150px;animation-delay:1.85s">
       <div class="tagbox b">reads as: hero</div>
-    </div>
-    <div class="anno" style="left:2%;bottom:-4px;animation-delay:2s">
-      <div class="tagbox">conf. 0.88</div>
-    </div>
-    <div class="anno" style="right:4%;bottom:26px;animation-delay:2.1s">
-      <div class="dim" style="width:96px"><s></s><span>h 240</span></div>
     </div>
 
     <!-- live cursors -->
@@ -100,7 +95,7 @@
     <div class="bar">
       <span class="dot"></span><span class="dot"></span><span class="dot"></span>
       <span class="nmn">mirage · untitled sketch</span>
-      <span class="rt"><span>12 col</span><span id="wStat">4 boxes</span><span>MIT</span></span>
+      <span class="rt"><span>16 col</span><span id="wStat">4 boxes</span><span>MIT</span></span>
     </div>
     <div class="body">
       <div class="lft" id="demoL"></div>
@@ -127,8 +122,8 @@
           <rect x="1" y="1" width="188" height="86" fill="none" stroke="#C6D1D9"/>
           <rect x="9" y="8" width="172" height="13" fill="#1F5F8B" opacity=".82"/>
           <rect x="9" y="68" width="172" height="13" fill="#C6D1D9"/>
-          <text x="9" y="42" font-family="IBM Plex Mono" font-size="8" fill="#7C8B96">y &lt; 0.13 → nav</text>
-          <text x="9" y="55" font-family="IBM Plex Mono" font-size="8" fill="#7C8B96">y &gt; 0.87 → footer</text>
+          <text x="9" y="42" font-family="IBM Plex Mono" font-size="8" fill="#56636D">first row, full width → nav</text>
+          <text x="9" y="55" font-family="IBM Plex Mono" font-size="8" fill="#56636D">last row, full width → footer</text>
         </svg>
       </div>
       <div class="rule">
@@ -148,7 +143,7 @@
       <div class="rule">
         <span class="k">Signal 03</span>
         <h3>What sits beside it</h3>
-        <p>Three similar boxes sharing a row are a card grid, never three separate blocks. Two are a split. Five short ones are a logo row.</p>
+        <p>Three similar boxes sharing a row are a card grid, never three separate blocks. Four or more short ones are a logo row.</p>
         <svg viewBox="0 0 190 88" width="100%">
           <rect x="1" y="1" width="188" height="86" fill="none" stroke="#C6D1D9"/>
           <rect x="9" y="14" width="54" height="40" fill="#1F5F8B" opacity=".82"/>
@@ -170,12 +165,12 @@
           <rect x="9" y="20" width="101" height="20" fill="#C6D1D9"/>
           <rect x="9" y="48" width="101" height="20" fill="#1F5F8B" opacity=".82"/>
           <path d="M9 76h101" stroke="#EFC44A" stroke-width="1.6"/>
-          <text x="115" y="61" font-family="IBM Plex Mono" font-size="8" fill="#7C8B96">7/12</text>
+          <text x="115" y="61" font-family="IBM Plex Mono" font-size="8" fill="#56636D">9/16</text>
         </svg>
       </div>
     </div>
 
-    <p class="rv" style="margin-top:18px;font-family:var(--f-m);font-size:11.5px;color:var(--stone);line-height:1.7;max-width:62ch">
+    <p class="rv foot-note">
       When two readings are close, Mirage flags the box instead of guessing quietly. You can override any box in one click, and an overridden box is never re-read.
     </p>
   </div>
@@ -186,9 +181,10 @@
   <div class="wrap">
     <div class="head rv">
       <span class="no">02</span>
-      <h2>Nineteen components, no configuration</h2>
-      <p>Nine are detected from geometry alone. The rest are one click away in the inspector when you want something specific.</p>
+      <h2>Eighteen components, no configuration</h2>
+      <p>Eleven are detected from geometry alone. The other seven are one click away in the inspector when you want something specific.</p>
     </div>
+    <div class="liblegend rv"><span><i class="bd auto">auto</i> read from geometry</span><span><i class="bd pick">pick</i> chosen in the inspector</span></div>
     <div class="libgrid rv" id="libGrid"></div>
   </div>
 </section>
@@ -199,13 +195,17 @@
     <div class="head rv">
       <span class="no">03</span>
       <h2>The structure is yours. The skin is a switch.</h2>
-      <p>Themes are pure design tokens. The markup never changes, so switching one does not touch a single line of your structure.</p>
+      <p>35 styles, all pure design tokens. The markup never changes, so switching one does not touch a single line of your structure. Try four of them here.</p>
     </div>
-    <div class="themes rv">
-      <div class="th"><div class="top th-a"><h4>Plain</h4><p>Neutral defaults. A sensible starting point for a product page.</p><span class="pill">Get started</span></div><div class="cap">tokens <b>7</b></div></div>
-      <div class="th"><div class="top th-b"><h4>Editorial</h4><p>Serif display, warm paper, zero radius. Built for long reading.</p><span class="pill">Read on</span></div><div class="cap">tokens <b>7</b></div></div>
-      <div class="th"><div class="top th-c"><h4>Brutal</h4><p>Hard borders, offset shadows, tight tracking. Loud on purpose.</p><span class="pill">Go</span></div><div class="cap">tokens <b>7</b></div></div>
-      <div class="th"><div class="top th-d"><h4>Terminal</h4><p>Monospace everything on near-black. For developer tools.</p><span class="pill">./run</span></div><div class="cap">tokens <b>7</b></div></div>
+    <div class="themes rv" id="themePick" role="tablist" aria-label="Preview a style">
+      <button class="th on" data-sk="plain" role="tab" aria-selected="true"><div class="top th-a"><h4>Plain</h4><p>Neutral defaults. A sensible starting point for a product page.</p><span class="pill">Get started</span></div><div class="cap">preview <b>&rarr;</b></div></button>
+      <button class="th" data-sk="editorial" role="tab" aria-selected="false"><div class="top th-b"><h4>Editorial</h4><p>Serif display, warm paper, zero radius. Built for long reading.</p><span class="pill">Read on</span></div><div class="cap">preview <b>&rarr;</b></div></button>
+      <button class="th" data-sk="brutal" role="tab" aria-selected="false"><div class="top th-c"><h4>Brutal</h4><p>Hard borders, offset shadows, tight tracking. Loud on purpose.</p><span class="pill">Go</span></div><div class="cap">preview <b>&rarr;</b></div></button>
+      <button class="th" data-sk="terminal" role="tab" aria-selected="false"><div class="top th-d"><h4>Terminal</h4><p>Monospace everything on near-black. For developer tools.</p><span class="pill">./run</span></div><div class="cap">preview <b>&rarr;</b></div></button>
+    </div>
+    <div class="thprev rv">
+      <div class="bar"><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="nmn">same sketch · <b id="skName">Plain</b></span><span class="rt">+31 more in the editor</span></div>
+      <div class="pv sk-plain" id="thPv"></div>
     </div>
   </div>
 </section>
@@ -221,12 +221,21 @@
     <div class="exp rv">
       <div class="l">
         <h3>Three targets, one sketch</h3>
-        <p>The HTML target ships semantic markup with a token-driven stylesheet. React assumes a component library and passes props. Tailwind emits utilities with mobile-first breakpoints already in place.</p>
-        <p style="color:var(--stone);font-family:var(--f-m);font-size:11.5px">Sketch JSON round-trips the whole document, so a wireframe is a file you can commit.</p>
         <div class="tabs" id="tabs">
           <button class="on" data-f="html">HTML</button>
           <button data-f="react">React</button>
           <button data-f="tw">Tailwind</button>
+        </div>
+        <p>The HTML target ships semantic markup with a token-driven stylesheet. React assumes a component library and passes props. Tailwind emits utilities with mobile-first breakpoints already in place.</p>
+        <p class="foot-note">Sketch JSON round-trips the whole document, so a wireframe is a file you can commit.</p>
+        <div class="srcsk" aria-hidden="true">
+          <span class="k">the sketch</span>
+          <div class="sk-in">
+          <i style="left:0;top:0;width:100%;height:12%"></i>
+          <i style="left:0;top:18%;width:100%;height:34%"></i>
+          <i style="left:0;top:58%;width:31%;height:24%"></i><i style="left:34.5%;top:58%;width:31%;height:24%"></i><i style="left:69%;top:58%;width:31%;height:24%"></i>
+          <i style="left:0;top:88%;width:100%;height:12%"></i>
+          </div>
         </div>
       </div>
       <pre id="code"></pre>
@@ -256,6 +265,6 @@
 </footer>
 
 
-  <script src="./js/landing.js?v=4" defer></script>
+  <script src="./js/landing.js?v=5" defer></script>
 </body>
 </html>
