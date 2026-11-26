@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Gallery · Mirage</title>
+<meta name="description" content="Sketches drawn in Mirage. Open any of them in the editor as your own copy, or download the JSON and build it with the CLI.">
+<link rel="icon" href="../favicon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700;800;900&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../css/landing.css?v=6">
+<style>
+  .gal{display:grid;grid-template-columns:repeat(auto-fill,minmax(330px,1fr));gap:14px;padding-bottom:80px}
+  .card{border:var(--edge);background:var(--sheet);display:flex;flex-direction:column}
+  .card .shot{aspect-ratio:4/3;overflow:hidden;border-bottom:var(--edge);background:var(--paper2)}
+  .card .shot img{width:100%;height:100%;object-fit:contain;object-position:top;display:block;transition:transform .5s ease}
+  .card:hover .shot img{transform:scale(1.03)}
+  .card .tx{padding:16px 16px 18px;display:flex;flex-direction:column;gap:8px;flex:1}
+  .card h3{font-size:19px;font-weight:800;letter-spacing:-.035em}
+  .card p{font-size:13.5px;line-height:1.6;color:#3E4A54}
+  .card .chips{display:flex;flex-wrap:wrap;gap:5px;margin-top:2px}
+  .card .chips span{font-family:var(--f-m);font-size:10.5px;border:1px solid var(--grid);padding:2px 7px;color:var(--stone)}
+  .card .acts{display:flex;gap:8px;margin-top:auto;padding-top:8px}
+  .cli{border:var(--edge);background:var(--ink);color:#D6DEE4;font-family:var(--f-m);font-size:12.5px;padding:16px 18px;line-height:1.8;margin:0 0 26px;overflow:auto}
+  .cli b{color:var(--mark);font-weight:400}
+</style>
+</head>
+<body>
+<div class="dots"></div>
+<nav>
+  <div class="wrap in">
+    <a class="logo" href="../"><b>Mirage</b><span>v0.7</span></a>
+    <div class="lk"><a href="../#how">How it reads</a><a href="../#new">What's new</a><a href="./">Gallery</a></div>
+    <div class="rt"><a class="btn ghost sm" href="https://github.com/Veer1778/Mirage">GitHub</a><a class="btn solid sm" href="../mirage">Open the editor</a></div>
+  </div>
+</nav>
+<section>
+  <div class="wrap">
+    <div class="head">
+      <span class="no">GALLERY</span>
+      <h2>Drawn in Mirage</h2>
+      <p>Open any of these as your own copy, or download the sketch and build it with the CLI. Every one is a single JSON file you can commit.</p>
+    </div>
+    <pre class="cli"><b>$</b> npx github:Veer1778/Mirage build bakery.json --target next --out app
+<b>$</b> npx github:Veer1778/Mirage check bakery.json</pre>
+    <div class="gal" id="gal"></div>
+  </div>
+</section>
+<footer><div class="wrap in"><span>Mirage</span><a href="../">Home</a><a href="../mirage">Editor</a><a href="https://github.com/Veer1778/Mirage">GitHub</a><span class="sp">MIT licensed. Drawn, not configured.</span></div></footer>
+<script type="module">
+  import { classify } from '../js/core/classify.js';
+  const EX = [
+    ['bakery', 'A two-page bakery site with real photos, a custom FAQ component, its own palette and full SEO settings.'],
+    ['docs', 'API docs: a side rail beside stacked sections. Shows how a tall narrow box reads as navigation.'],
+    ['dashboard', 'An analytics dashboard in the Modern Dark style: rail, stat bar, two panels and a written summary.'],
+    ['portfolio', 'A designer portfolio in the Editorial style: split hero, portrait, case study and footer.'],
+  ];
+  const esc = s => String(s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+  const NAMES = {__custom:'Custom', '':'Plain'};
+  const gal = document.getElementById('gal');
+  for(const [key, blurb] of EX){
+    const j = await (await fetch('examples/'+key+'.json')).json();
+    const boxes = j.pages.reduce((n,p) => n + p.boxes.length, 0);
+    const types = new Set(); j.pages.forEach(p => classify(p.boxes, {custom: j.components||[]}).list.forEach(b => !b.merged && types.add(b.type)));
+    const style = NAMES[j.theme] || j.theme.replace(/-/g,' ').replace(/\b\w/g, c => c.toUpperCase());
+    gal.insertAdjacentHTML('beforeend',
+      '<article class="card"><a class="shot" href="../mirage?example='+key+'"><img src="thumbs/'+key+'.webp" alt="'+esc(j.name)+', rendered by Mirage" loading="lazy"></a>'+
+      '<div class="tx"><h3>'+esc(j.name)+'</h3><p>'+esc(blurb)+'</p><div class="chips"><span>'+j.pages.length+' page'+(j.pages.length>1?'s':'')+'</span><span>'+boxes+' boxes</span><span>'+types.size+' components</span><span>'+esc(style)+'</span></div>'+
+      '<div class="acts"><a class="btn solid sm" href="../mirage?example='+key+'">Open in Mirage</a><a class="btn ghost sm" href="examples/'+key+'.json" download="'+key+'.json">Download JSON</a></div></div></article>');
+  }
+</script>
+</body>
+</html>

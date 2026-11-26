@@ -19,7 +19,7 @@ const me = {
 };
 const PEERJS = 'https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js';
 let room = null, bc = null, peer = null, conns = [], isHost = false;
-let lastRev = 0, pendingState = null, sendTimer = null;
+let sendTimer = null;
 let synced = false;   // only someone already holding the sketch answers newcomers, so a blank joiner never wipes it
 const people = new Map();   // id -> {name,color,x,y,pg,seen}
 
@@ -37,31 +37,114 @@ function receive(msg, via){
   const p = people.get(msg.from) || {};
   people.set(msg.from, Object.assign(p, {name:msg.name||p.name||'Someone', color:msg.color||p.color||'#888', seen:Date.now()}));
   switch(msg.t){
-    case 'hello': case 'want': if(synced) sendState(true); break;
-    case 'state': applyRemote(msg); break;
+    case 'hello': case 'want': if(synced) sendState(); break;
+    case 'state': if(!synced) applyFull(msg); break;
+    case 'ops': if(synced) applyOps(msg.ops); break;
     case 'cursor': if(!msg.ping){ Object.assign(people.get(msg.from), {x:msg.x, y:msg.y, pg:msg.pg}); M.paint(); } break;
     case 'bye': people.delete(msg.from); M.paint(); break;
   }
   drawPeople();
 }
 
-/* ------------------------------------------------------------ state sync */
-function sendState(now){
+/* ------------------------------------------------------------ state sync
+   Per-box merge. Every box, the page list and the document settings carry a
+   version [clock, client]. Local edits are found by diffing against a shadow
+   copy; only changed boxes travel. Deletes leave a tombstone. When two people
+   edit the same box at once, the later clock wins for that box only. */
+let clock = 0;
+const ver = {};          // key -> [clock, client]; keys: 'b:<page>:<box>', 'pages', 'doc'
+const shadow = {};       // same keys -> JSON of what we last saw
+const tomb = {};         // 'b:<page>:<box>' -> version of the delete
+const sentAssets = new Set();
+const newer = (a, b) => !b || a[0] > b[0] || (a[0]===b[0] && a[1] > b[1]);
+const tick = () => [++clock, me.id];
+const seeClock = v => { if(v && v[0] > clock) clock = v[0]; };
+const pageList = st => st.pages.map(p => ({id:p.id, name:p.name}));
+const docOf = st => ({theme:st.theme, design:st.design, shareChrome:st.shareChrome, components:st.components, pageMeta:st.pageMeta, name:st.name});
+const boxJSON = b => JSON.stringify(b);
+
+/* compare the live project with the shadow and stamp whatever changed */
+function diff(){
+  const st = M.state(), ops = {boxes:[], dels:[], assets:{}};
+  const seen = new Set();
+  st.pages.forEach(p => p.boxes.forEach(b => {
+    const k = 'b:'+p.id+':'+b.id, j = boxJSON(b); seen.add(k);
+    if(shadow[k] !== j){ shadow[k] = j; ver[k] = tick(); delete tomb[k]; ops.boxes.push({p:p.id, b, v:ver[k]});
+      b.c && Object.keys(b.c).forEach(f => { const r = b.c[f]; if(/:src$/.test(f) && /^asset:/.test(r||'')){ const id = r.slice(6);
+        if(!sentAssets.has(id) && st.assets[id]){ ops.assets[id] = st.assets[id]; sentAssets.add(id); } } });
+    }
+  }));
+  Object.keys(shadow).forEach(k => { if(k.startsWith('b:') && !seen.has(k)){ delete shadow[k]; tomb[k] = tick(); ops.dels.push({k, v:tomb[k]}); } });
+  const pl = JSON.stringify(pageList(st)); if(shadow.pages !== pl){ shadow.pages = pl; ver.pages = tick(); ops.pages = {list:pageList(st), v:ver.pages}; }
+  const dc = JSON.stringify(docOf(st)); if(shadow.doc !== dc){ shadow.doc = dc; ver.doc = tick(); ops.doc = {data:docOf(st), v:ver.doc}; }
+  return ops;
+}
+const empty = o => !o.boxes.length && !o.dels.length && !o.pages && !o.doc;
+/* take a remote snapshot as the new baseline without stamping anything */
+function baseline(st){
+  Object.keys(shadow).forEach(k => delete shadow[k]);
+  st.pages.forEach(p => p.boxes.forEach(b => { shadow['b:'+p.id+':'+b.id] = boxJSON(b); }));
+  shadow.pages = JSON.stringify(pageList(st)); shadow.doc = JSON.stringify(docOf(st));
+}
+
+function sendOps(now){
   clearTimeout(sendTimer);
-  const go = () => { const rev = Date.now(); lastRev = Math.max(lastRev, rev);
-    send({t:'state', rev, name:me.name, color:me.color, state:M.state()}); };
-  now ? go() : (sendTimer = setTimeout(go, 120));
+  const go = () => { const o = diff(); if(!empty(o)) send({t:'ops', name:me.name, color:me.color, ops:o}); };
+  now ? go() : (sendTimer = setTimeout(go, 90));
 }
-function applyRemote(msg){
-  if(msg.rev < lastRev) return;            // older than what we already have
-  lastRev = msg.rev; synced = true;
-  if(M.isBusy()){ pendingState = msg; return; }   // never yank a box out from under the mouse
-  M.applyState(msg.state, {keepPage:true});
+/* full snapshot for someone who just joined */
+function sendState(){
+  diff();
+  send({t:'state', name:me.name, color:me.color, state:M.state(), ver:{...ver}, tomb:{...tomb}, clock});
 }
+
+function applyOps(o){
+  if(M.isBusy()){ pendingOps.push(o); return; }
+  sendOps(true);   // flush our own unsent edits first so the new baseline cannot swallow them
+  const st = M.state();
+  let changed = false;
+  const pageById = id => st.pages.find(p => p.id===id);
+  if(o.pages && newer(o.pages.v, ver.pages)){
+    seeClock(o.pages.v); ver.pages = o.pages.v;
+    const next = o.pages.list.map(x => { const ex = pageById(x.id); return ex ? Object.assign(ex, {name:x.name}) : {id:x.id, name:x.name, boxes:[]}; });
+    st.pages = next.length ? next : st.pages; changed = true;
+  }
+  (o.boxes||[]).forEach(({p, b, v}) => {
+    seeClock(v);
+    const k = 'b:'+p+':'+b.id;
+    if(!newer(v, ver[k]) || (tomb[k] && !newer(v, tomb[k]))) return;
+    ver[k] = v; delete tomb[k];
+    let page = pageById(p); if(!page){ page = {id:p, name:'Page', boxes:[]}; st.pages.push(page); }
+    const at = page.boxes.findIndex(x => x.id===b.id);
+    if(at>=0) page.boxes[at] = b; else page.boxes.push(b);
+    changed = true;
+  });
+  (o.dels||[]).forEach(({k, v}) => {
+    seeClock(v);
+    if(ver[k] && !newer(v, ver[k])) return;
+    tomb[k] = v; delete ver[k];
+    const [, p, id] = k.split(':'); const page = pageById(p);
+    if(page){ const n = page.boxes.length; page.boxes = page.boxes.filter(x => x.id!==id); changed = changed || n!==page.boxes.length; }
+  });
+  if(o.doc && newer(o.doc.v, ver.doc)){ seeClock(o.doc.v); ver.doc = o.doc.v; Object.assign(st, o.doc.data); changed = true; }
+  if(o.assets) st.assets = Object.assign({}, st.assets, o.assets);
+  if(!changed && !o.assets) return;
+  // children whose parent vanished go back to the top level instead of disappearing
+  st.pages.forEach(p => { const ids = new Set(p.boxes.map(b => b.id)); p.boxes.forEach(b => { if(b.pid && !ids.has(b.pid)) delete b.pid; }); });
+  M.applyState(st, {keepPage:true, keepName:false});
+  baseline(M.state());
+}
+let pendingOps = [];
 setInterval(() => {
-  if(pendingState && !M.isBusy()){ const m = pendingState; pendingState = null; M.applyState(m.state, {keepPage:true}); }
-}, 200);
-M.on('change', () => { if(room && synced) sendState(false); });
+  if(pendingOps.length && !M.isBusy()){ const q = pendingOps; pendingOps = []; q.forEach(applyOps); }
+}, 150);
+function applyFull(msg){
+  seeClock([msg.clock||0]);
+  Object.assign(ver, msg.ver||{}); Object.assign(tomb, msg.tomb||{});
+  M.applyState(msg.state, {keepPage:false});
+  baseline(M.state()); synced = true;
+}
+M.on('change', () => { if(room && synced) sendOps(false); });
 
 /* ------------------------------------------------------------ cursors */
 let lastCur = 0;
@@ -148,8 +231,8 @@ function start(code, host){
   $('liveDot').classList.add('on');
   drawPeople();
   send({t: host ? 'hello' : 'want', name:me.name, color:me.color});
-  if(host) sendState(true);
-  else setTimeout(() => { if(room===code && !synced) synced = true; }, 4000);  // nobody answered: this tab holds the sketch now
+  if(host){ baseline(M.state()); sendState(); }
+  else setTimeout(() => { if(room===code && !synced){ synced = true; baseline(M.state()); } }, 4000);  // nobody answered: this tab holds the sketch now
   remote(host);
 }
 function leave(quiet){

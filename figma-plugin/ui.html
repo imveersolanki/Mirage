@@ -1,0 +1,47 @@
+<style>
+  body{font:12px/1.5 Inter,system-ui,sans-serif;margin:0;color:var(--figma-color-text,#111);background:var(--figma-color-bg,#fff)}
+  .tabs{display:flex;border-bottom:1px solid var(--figma-color-border,#e5e5e5)}
+  .tabs button{flex:1;padding:10px;border:0;background:none;font:inherit;cursor:pointer;color:inherit}
+  .tabs button.on{box-shadow:inset 0 -2px 0 currentColor;font-weight:600}
+  section{padding:14px;display:none}section.on{display:block}
+  textarea{width:100%;box-sizing:border-box;height:300px;font:11px/1.5 ui-monospace,Menlo,monospace;border:1px solid var(--figma-color-border,#ddd);padding:8px;background:transparent;color:inherit;resize:none}
+  .row{display:flex;gap:6px;margin-top:8px}
+  .btn{padding:7px 12px;border:1px solid var(--figma-color-border,#ccc);background:none;font:inherit;cursor:pointer;color:inherit}
+  .btn.solid{background:var(--figma-color-bg-brand,#18a0fb);color:#fff;border-color:transparent}
+  p{margin:0 0 10px;color:var(--figma-color-text-secondary,#666)}
+  #msg{margin-top:8px;min-height:18px}
+</style>
+<div class="tabs"><button class="on" data-t="out">Figma to Mirage</button><button data-t="in">Mirage to Figma</button></div>
+<section id="out" class="on">
+  <p>Select frames. Each becomes a page; rectangles and frames inside become boxes. Name a layer "Hero", "Nav" or "Pricing" to set its type.</p>
+  <div class="row"><button class="btn solid" id="go">Convert selection</button></div>
+  <textarea id="outJson" readonly placeholder="The sketch JSON appears here" style="margin-top:8px"></textarea>
+  <div class="row"><button class="btn" id="copy">Copy</button><button class="btn" id="save">Download .json</button></div>
+  <p style="margin-top:8px">In Mirage: Projects, then Open .json.</p>
+</section>
+<section id="in">
+  <p>In Mirage, Export, then JSON. Paste it here to get one frame per page with named boxes.</p>
+  <textarea id="inJson" placeholder="Paste Mirage JSON"></textarea>
+  <div class="row"><button class="btn solid" id="make">Create frames</button></div>
+</section>
+<div id="msg" style="padding:0 14px"></div>
+<script>
+  const $ = id => document.getElementById(id);
+  document.querySelectorAll('.tabs button').forEach(b => b.onclick = () => {
+    document.querySelectorAll('.tabs button,section').forEach(x => x.classList.remove('on'));
+    b.classList.add('on'); $(b.dataset.t).classList.add('on'); $('msg').textContent = '';
+  });
+  $('go').onclick = () => parent.postMessage({pluginMessage: {type: 'export'}}, '*');
+  $('make').onclick = () => parent.postMessage({pluginMessage: {type: 'import', json: $('inJson').value}}, '*');
+  $('copy').onclick = () => { const t = $('outJson'); t.select(); document.execCommand('copy'); $('msg').textContent = 'Copied.'; };
+  $('save').onclick = () => {
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(new Blob([$('outJson').value], {type: 'application/json'})); a.download = 'mirage-sketch.json'; a.click();
+  };
+  onmessage = e => {
+    const m = e.data.pluginMessage; if(!m) return;
+    if(m.type === 'exported'){ $('outJson').value = m.json; $('msg').textContent = m.pages + ' page(s), ' + m.boxes + ' boxes.'; }
+    if(m.type === 'imported') $('msg').textContent = 'Created ' + m.pages + ' frame(s).';
+    if(m.type === 'error') $('msg').textContent = m.text;
+  };
+</script>

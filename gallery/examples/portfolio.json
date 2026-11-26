@@ -1,0 +1,117 @@
+{
+  "version": 7,
+  "name": "Ira Mehta, product designer",
+  "cols": 16,
+  "theme": "editorial",
+  "design": {
+    "bg": "#FFFFFF",
+    "fg": "#111111",
+    "mut": "#6E6E6E",
+    "line": "#E4E4E4",
+    "acc": "#E30613",
+    "acc2": "#111111",
+    "fontD": "Inter",
+    "fontB": "Inter",
+    "weight": 800,
+    "track": -30,
+    "radius": 2,
+    "border": 1,
+    "pad": 26,
+    "shadow": "none"
+  },
+  "shareChrome": true,
+  "components": [],
+  "pageMeta": {
+    "site": {},
+    "pages": {
+      "pg_home": {
+        "title": "Ira Mehta, product designer",
+        "description": "Portfolio of Ira Mehta, a product designer in Bengaluru working on calm, accessible fintech and health software."
+      }
+    }
+  },
+  "pages": [
+    {
+      "id": "pg_home",
+      "name": "Home",
+      "boxes": [
+        {
+          "cx": 0,
+          "cy": 0,
+          "cw": 16,
+          "ch": 2,
+          "id": "btslfjxb",
+          "c": {
+            "brand": "Ira Mehta",
+            "navA": "Work",
+            "navB": "About",
+            "navC": "Writing",
+            "navCta": "Say hello"
+          },
+          "read": "nav"
+        },
+        {
+          "cx": 0,
+          "cy": 2,
+          "cw": 9,
+          "ch": 8,
+          "id": "bhkijmm9",
+          "c": {
+            "heroH": "I design calm software for busy people.",
+            "heroP": "Product designer in Bengaluru. Ten years across fintech and health, currently leading design at a payments startup.",
+            "heroB1": "See the work",
+            "heroB2": "Read my notes"
+          },
+          "read": "hero"
+        },
+        {
+          "cx": 9,
+          "cy": 2,
+          "cw": 7,
+          "ch": 8,
+          "id": "b2hosa51",
+          "c": {
+            "img": "PORTRAIT"
+          },
+          "read": "image"
+        },
+        {
+          "cx": 0,
+          "cy": 10,
+          "cw": 7,
+          "ch": 6,
+          "id": "bw5app8l",
+          "c": {
+            "img": "CASE STUDY"
+          },
+          "read": "image"
+        },
+        {
+          "cx": 7,
+          "cy": 10,
+          "cw": 9,
+          "ch": 6,
+          "id": "bq8wt7ie",
+          "c": {
+            "textH": "Rebuilding checkout for 40 million people",
+            "textP": "How we cut payment failures by a fifth by removing two screens, one form field and a lot of fear."
+          },
+          "read": "text"
+        },
+        {
+          "cx": 0,
+          "cy": 16,
+          "cw": 16,
+          "ch": 2,
+          "id": "b2d2lnyj",
+          "c": {
+            "footL": "Ira Mehta",
+            "footR": "Bengaluru · 2026"
+          },
+          "read": "footer"
+        }
+      ]
+    }
+  ],
+  "assets": {}
+}

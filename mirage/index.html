@@ -8,7 +8,8 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
 <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700;800&family=Archivo+Black&family=Bebas+Neue&family=Caveat:wght@400;700&family=Cormorant+Garamond:wght@300;400;600;700&family=DM+Sans:wght@400;500;700&family=EB+Garamond:wght@400;500;600&family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,900&family=IBM+Plex+Sans:wght@400;500;600;700&family=Instrument+Serif:ital@0;1&family=JetBrains+Mono:wght@400;500;700&family=Kalam:wght@400;700&family=Libre+Baskerville:wght@400;700&family=Lora:wght@400;500;600;700&family=Manrope:wght@400;500;700;800&family=Nunito:wght@400;600;700;900&family=Orbitron:wght@400;700;900&family=Oswald:wght@400;500;600;700&family=Playfair+Display:wght@400;500;700;800;900&family=Poiret+One&family=Roboto:wght@400;500;700;900&family=Sora:wght@400;600;800&family=Source+Serif+4:wght@400;600;700&family=Space+Grotesk:wght@400;500;600;700&family=Space+Mono:wght@400;700&family=Syne:wght@400;600;800&family=VT323&family=Work+Sans:wght@400;500;700;800&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="../css/mirage.css?v=7">
+<link rel="icon" href="../favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="../css/mirage.css?v=8">
 <link rel="stylesheet" href="../css/themes.css?v=6">
 </head>
 <body>
@@ -39,6 +40,7 @@
     <button class="btn" id="bImport" title="Turn a photo or screenshot into a sketch">Import</button>
     <button class="btn" id="bSnips" title="Saved groups of rows">Snippets</button>
     <button class="btn" id="bVers" title="Named versions">Versions</button>
+    <button class="btn" id="bComps" title="Your own components">Components</button>
     <button class="btn" id="bLive" title="Sketch together"><span class="livedot" id="liveDot"></span>Live</button>
     <button class="btn" id="bShare" title="Share link, Figma, deploy">Share</button>
   </div>
@@ -62,7 +64,7 @@
   <!-- ===================== rail ===================== -->
   <aside id="rail">
     <div class="pages" id="pagesBar">
-      <div class="lbl">Pages <label class="shr" title="Keep nav and footer text the same on every page"><input type="checkbox" id="shareChrome" checked> shared nav</label></div>
+      <div class="lbl">Pages <button class="pgset" id="bPageSet" title="Page title, description and site settings">SEO</button> <label class="shr" title="Keep nav and footer text the same on every page"><input type="checkbox" id="shareChrome" checked> shared nav</label></div>
       <div class="ptabs" id="pageTabs"></div>
     </div>
     <div class="pane on" id="paneLayers">
@@ -112,6 +114,14 @@
         <section class="fld" id="fldVar" hidden>
           <label>Button type</label>
           <div class="chips" id="varGrid"></div>
+        </section>
+
+        <section class="fld" id="fldImg" hidden>
+          <label>Image</label>
+          <div class="row2" id="imgSlotRow" hidden><span class="cap">Tile</span><div class="sel full"><select id="imgSlot"></select><svg width="9" height="6" viewBox="0 0 9 6" fill="none"><path d="M1 1l3.5 3.5L8 1" stroke="currentColor" stroke-width="1.4"/></svg></div></div>
+          <div class="row2"><button class="btn" id="bImgPick">Choose image</button><button class="btn" id="bImgDel">Remove</button><input type="file" id="imgFile" accept="image/*" hidden></div>
+          <input class="tin" id="imgAlt" placeholder="Describe the image for screen readers" style="margin-top:8px">
+          <p class="note" style="margin-top:6px">Or drop an image onto it in the preview.</p>
         </section>
 
         <section class="fld" id="fldRsp">
@@ -204,6 +214,7 @@
         </select>
         <svg width="9" height="6" viewBox="0 0 9 6" fill="none"><path d="M1 1l3.5 3.5L8 1" stroke="currentColor" stroke-width="1.4"/></svg>
       </div>
+      <button class="btn chk" id="bCheck" title="Accessibility and SEO checks">Check <i id="chkN">0</i></button>
       <button class="btn ico" id="bFull" title="Expand preview">
         <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M4.5 1H1v3.5M7.5 11H11V7.5M11 4.5V1H7.5M1 7.5V11h3.5" stroke="currentColor" stroke-width="1.3" stroke-linecap="square"/></svg>
       </button>
@@ -220,6 +231,7 @@
   <span class="hint"><b>drag</b> to draw</span><span class="hint"><b>drag a box</b> to move</span>
   <span class="hint"><b>handles</b> to resize</span><span class="hint"><b>alt-drag</b> inside to nest</span><span class="hint"><b>side by side</b> is a row</span>
   <span class="sp"></span>
+  <span class="zoom" title="Zoom the sketch: ctrl or ⌘ + scroll, or pinch"><button id="zOut" aria-label="Zoom out">−</button><button id="zoomLbl" title="Reset zoom">100%</button><button id="zIn" aria-label="Zoom in">+</button></span>
   <span id="ftSel">no selection</span><span>·</span><span>MIT</span>
 </footer>
 </div>
@@ -246,6 +258,7 @@
 <!-- ===================== projects ===================== -->
 <div class="modal" id="mProj"><div class="box">
   <header><h2>Projects</h2>
+    <button class="btn" id="bOpenJson" title="Open a sketch .json (from Export or the CLI)">Open .json</button><input type="file" id="openJson" accept=".json,application/json" hidden>
     <button class="btn" id="bNewProj">New project</button>
     <button class="x" id="xProj" aria-label="Close">&times;</button></header>
   <div class="body"><div id="projList"><p class="empty">Loading…</p></div></div>
@@ -372,6 +385,13 @@
       </section>
       <section class="fld">
         <label class="drop" id="impDrop"><input type="file" id="impFile" accept="image/*" hidden><span>Drop an image, paste one, or click to choose</span></label>
+        <div class="row2" style="margin-top:8px"><button class="btn" id="bImpCam">Take a photo</button><input type="file" id="impCam" accept="image/*" capture="environment" hidden></div>
+        <label class="ckl"><input type="checkbox" id="impStraight" checked> Straighten tilted photos</label>
+      </section>
+      <section class="fld"><label>Labels</label>
+        <p class="note">Wrote "hero" or "pricing" inside your boxes? Gemini can read the handwriting and set each box's type. Uses the key from the AI panel.</p>
+        <div class="row2" style="margin-top:8px"><button class="btn" id="bImpAI">Read my labels</button></div>
+        <p class="note" id="impAIOut"></p>
       </section>
       <section class="fld"><label>Sensitivity</label>
         <div class="slider"><span class="k">Min</span><input type="range" id="impMin" min="1" max="12" step="1" value="4"><span class="n" id="impMinV">4</span></div>
@@ -418,13 +438,66 @@
     </section>
   </div>
 </div></div>
+
+<!-- ===================== checks ===================== -->
+<div class="modal" id="mCheck"><div class="box wide">
+  <header><h2>Checks</h2><span class="tag">accessibility · SEO</span><button class="x" data-x="mCheck" aria-label="Close">&times;</button></header>
+  <div class="body"><div id="chkList"></div></div>
+  <footer><span class="note">Checked on every page with the current style. Exports already add labels, landmarks and one h1 per page.</span></footer>
+</div></div>
+
+<!-- ===================== page settings ===================== -->
+<div class="modal" id="mPage"><div class="box wide">
+  <header><h2>Pages and SEO</h2><button class="x" data-x="mPage" aria-label="Close">&times;</button></header>
+  <div class="body">
+    <section class="fld"><label>Site</label>
+      <div class="row2"><input class="tin mono" id="siteUrl" placeholder="https://example.com (used for the sitemap and share previews)"></div>
+      <div class="row2" style="margin-top:6px"><input class="tin" id="siteLang" placeholder="Language, e.g. en" style="max-width:160px"></div>
+    </section>
+    <div id="pageMetaList"></div>
+  </div>
+  <footer><span class="note">Used by the site zip, Next.js export and Netlify deploy: titles, descriptions, Open Graph tags, sitemap.xml and robots.txt.</span></footer>
+</div></div>
+
+<!-- ===================== custom components ===================== -->
+<div class="modal" id="mComp"><div class="box wide">
+  <header><h2>Components</h2><span class="tag">your own</span><button class="x" data-x="mComp" aria-label="Close">&times;</button></header>
+  <div class="body split">
+    <div class="form">
+      <section class="fld"><label>Yours</label><div id="compList"></div>
+        <div class="row2" style="margin-top:8px"><button class="btn" id="bCompNew">New component</button><button class="btn" id="bCompEx">Add an example</button></div></section>
+      <section class="fld" id="compEdit" hidden>
+        <label>Name</label><input class="tin" id="compName" placeholder="Testimonial">
+        <label style="margin-top:12px">Read automatically when a box is</label>
+        <div class="row2"><span class="cap">Width</span><input class="tin mono" id="cMinW" type="number" min="1" max="16" placeholder="min"><input class="tin mono" id="cMaxW" type="number" min="1" max="16" placeholder="max"></div>
+        <div class="row2"><span class="cap">Height</span><input class="tin mono" id="cMinH" type="number" min="1" max="40" placeholder="min"><input class="tin mono" id="cMaxH" type="number" min="1" max="40" placeholder="max"></div>
+        <div class="row2"><span class="cap">Where</span><div class="sel full"><select id="cWhere"><option value="any">Anywhere</option><option value="top">First row</option><option value="bottom">Last row</option></select><svg width="9" height="6" viewBox="0 0 9 6" fill="none"><path d="M1 1l3.5 3.5L8 1" stroke="currentColor" stroke-width="1.4"/></svg></div></div>
+        <div class="row2"><span class="cap">Row</span><div class="sel full"><select id="cRow"><option value="any">Alone or shared</option><option value="alone">Alone in its row</option><option value="shared">Sharing a row</option></select><svg width="9" height="6" viewBox="0 0 9 6" fill="none"><path d="M1 1l3.5 3.5L8 1" stroke="currentColor" stroke-width="1.4"/></svg></div></div>
+        <label class="ckl"><input type="checkbox" id="cAuto" checked> Detect from shape (otherwise only by picking it)</label>
+      </section>
+    </div>
+    <div class="md" id="compCode" hidden>
+      <div class="mdhead">template · use {{key|default text}} for editable text · classes must start with c-</div>
+      <textarea class="tin mono code" id="compTpl" rows="9" spellcheck="false"></textarea>
+      <div class="mdhead">css</div>
+      <textarea class="tin mono code" id="compCss" rows="7" spellcheck="false"></textarea>
+    </div>
+  </div>
+  <footer><span class="note" id="compNote">Saved with the project, so share links and exports carry them.</span>
+    <button class="btn" id="bCompDel" hidden>Delete</button><button class="btn solid" id="bCompSave" hidden>Save component</button></footer>
+</div></div>
+<div class="mobtog" id="mobTog" role="tablist" aria-label="Show"><button data-v="sketch" class="on" role="tab">Sketch</button><button data-v="preview" role="tab">Preview</button><button data-v="panel" role="tab">Inspector</button></div>
 <p class="toast" id="toast"></p>
 <style id="customTheme"></style>
+<style id="customComp"></style>
 
-<script src="../js/mirage.js?v=7" defer></script>
-<script src="../js/mirage-tools.js?v=1" defer></script>
-<script src="../js/mirage-import.js?v=1" defer></script>
-<script src="../js/mirage-ai.js?v=1" defer></script>
-<script src="../js/mirage-live.js?v=1" defer></script>
+<script type="module" src="../js/mirage.js?v=8"></script>
+<script src="../js/mirage-tools.js?v=2" defer></script>
+<script src="../js/mirage-import.js?v=2" defer></script>
+<script src="../js/mirage-ai.js?v=2" defer></script>
+<script src="../js/mirage-live.js?v=2" defer></script>
+<script src="../js/mirage-media.js?v=1" defer></script>
+<script src="../js/mirage-quality.js?v=1" defer></script>
+<script src="../js/mirage-components.js?v=1" defer></script>
 </body>
 </html>

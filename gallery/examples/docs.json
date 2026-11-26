@@ -1,0 +1,110 @@
+{
+  "version": 7,
+  "name": "Ledger docs",
+  "cols": 16,
+  "theme": "swiss-minimalist",
+  "design": {
+    "bg": "#FFFFFF",
+    "fg": "#111111",
+    "mut": "#6E6E6E",
+    "line": "#E4E4E4",
+    "acc": "#E30613",
+    "acc2": "#111111",
+    "fontD": "Inter",
+    "fontB": "Inter",
+    "weight": 800,
+    "track": -30,
+    "radius": 2,
+    "border": 1,
+    "pad": 26,
+    "shadow": "none"
+  },
+  "shareChrome": true,
+  "components": [],
+  "pageMeta": {
+    "site": {},
+    "pages": {
+      "pg_home": {
+        "title": "Ledger API reference",
+        "description": "Double-entry accounting as a REST API: authentication, idempotency, webhooks and rate limits explained."
+      }
+    }
+  },
+  "pages": [
+    {
+      "id": "pg_home",
+      "name": "Home",
+      "boxes": [
+        {
+          "cx": 0,
+          "cy": 0,
+          "cw": 16,
+          "ch": 2,
+          "id": "bs737wk9",
+          "c": {
+            "brand": "Ledger",
+            "navA": "Guides",
+            "navB": "API",
+            "navC": "Changelog",
+            "navCta": "Get a key"
+          },
+          "read": "nav"
+        },
+        {
+          "cx": 0,
+          "cy": 2,
+          "cw": 4,
+          "ch": 16,
+          "id": "bw7o9lcn",
+          "c": {
+            "side0": "Getting started",
+            "side1": "Authentication",
+            "side2": "Webhooks",
+            "side3": "Rate limits",
+            "side4": "Errors"
+          },
+          "read": "sidebar"
+        },
+        {
+          "cx": 4,
+          "cy": 2,
+          "cw": 12,
+          "ch": 5,
+          "id": "bkgpw6bs",
+          "c": {
+            "heroH": "Ledger API reference",
+            "heroP": "Double-entry accounting as a REST API. Every request is idempotent and every balance is auditable.",
+            "heroB1": "Quickstart",
+            "heroB2": "Download the SDK"
+          },
+          "read": "hero"
+        },
+        {
+          "cx": 4,
+          "cy": 7,
+          "cw": 12,
+          "ch": 5,
+          "id": "bzty3yqe",
+          "c": {
+            "textH": "Authentication",
+            "textP": "Send your secret key in the Authorization header. Keys are scoped to one ledger and can be rotated without downtime."
+          },
+          "read": "text"
+        },
+        {
+          "cx": 4,
+          "cy": 12,
+          "cw": 12,
+          "ch": 6,
+          "id": "bysks76s",
+          "c": {
+            "textH": "Idempotency",
+            "textP": "Retry any POST safely by sending the same Idempotency-Key. We keep keys for 24 hours and return the original response."
+          },
+          "read": "text"
+        }
+      ]
+    }
+  ],
+  "assets": {}
+}

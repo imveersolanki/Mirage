@@ -29,7 +29,7 @@ $('aiModel').value = LS.get('mirage.geminiModel') || $('aiModel').value;
 }));
 $('bAI').onclick = () => { $('mAI').classList.add('on'); hint(); setTimeout(() => $('aiBrief').focus(), 0); };
 
-async function gemini(prompt){
+async function gemini(prompt, imageDataUrl){
   const key = $('aiKey').value.trim(), model = $('aiModel').value.trim() || 'gemini-2.5-flash';
   if(!key) throw new Error('Add a Gemini API key first');
   LS.set('mirage.gemini', key); LS.set('mirage.geminiModel', model);
@@ -37,7 +37,8 @@ async function gemini(prompt){
     method:'POST',
     headers:{'Content-Type':'application/json', 'x-goog-api-key':key},
     body: JSON.stringify({
-      contents:[{role:'user', parts:[{text:prompt}]}],
+      contents:[{role:'user', parts:[{text:prompt}].concat(imageDataUrl ? [{inline_data:{
+        mime_type:imageDataUrl.slice(5, imageDataUrl.indexOf(';')), data:imageDataUrl.slice(imageDataUrl.indexOf(',')+1)}}] : [])}],
       generationConfig:{responseMimeType:'application/json', temperature:0.8},
     }),
   });
@@ -133,5 +134,6 @@ async function run(){
   }finally{ btn.disabled = false; btn.textContent = 'Generate'; }
 }
 $('bAIRun').onclick = run;
+M.gemini = gemini;   // shared with the import panel for reading handwritten labels
 hint();
 })();

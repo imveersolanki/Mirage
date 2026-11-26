@@ -1,44 +1,23 @@
 /* =====================================================================
    Mirage v0.6
    ===================================================================== */
+import { COLS, MINROWS, TYPES, NICE, MULTI, SHAPED, ALIGNABLE, SHAPES, VARIANTS, ALIGNS, FONTS,
+  DEFAULT_DESIGN, D, fieldsFor, templateFields } from './core/content.js';
+import { classify as coreClassify } from './core/classify.js';
+import { createMarkup, txt, esc as escAttr } from './core/markup.js';
+
 (() => {
 'use strict';
 
-const COLS = 16, MINROWS = 26;
-const TYPES = [
-  ['nav','Nav bar'],['hero','Hero'],['cards','Card grid'],['text','Text block'],
-  ['image','Image'],['gallery','Gallery'],['sidebar','Side nav'],['stats','Stat row'],
-  ['logos','Logo row'],['quote','Quote'],['form','Form'],['table','Table'],
-  ['tabs','Tabs'],['price','Pricing'],['banner','CTA banner'],['code','Code block'],
-  ['button','Button'],['footer','Footer'],
-];
-const NICE=Object.assign(Object.fromEntries(TYPES),{group:'Group'});
-const MULTI=['cards','stats','logos','gallery','price'];
-const SHAPED=['cards','image','gallery','price'];
-const ALIGNABLE=['hero','text','button','banner','quote','footer','nav','sidebar','logos','form','tabs'];
-const SHAPES=[['rect','Square'],['round','Rounded'],['pill','Pill'],
-  ['circle','Circle'],['squircle','Squircle'],['cut','Cut corner']];
-const VARIANTS=[['primary','Primary'],['secondary','Secondary'],['ghost','Ghost'],
-  ['pill','Pill'],['link','Link'],['group','Group']];
-const ALIGNS=[['start','Left'],['center','Centre'],['end','Right']];
-
-const FONTS=['Inter','Archivo','Archivo Black','Space Grotesk','Manrope','Sora','Syne','Work Sans',
-  'DM Sans','IBM Plex Sans','Roboto','Oswald','Bebas Neue','Nunito','Playfair Display',
-  'Cormorant Garamond','EB Garamond','Libre Baskerville','Lora','Source Serif 4','Fraunces',
-  'Instrument Serif','Poiret One','Caveat','Kalam','JetBrains Mono','IBM Plex Mono','Space Mono',
-  'VT323','Orbitron'];
-
-const DEFAULT_DESIGN = {
-  bg:'#FFFFFF', fg:'#111111', mut:'#6E6E6E', line:'#E4E4E4', acc:'#E30613', acc2:'#111111',
-  fontD:'Inter', fontB:'Inter', weight:800, track:-30,
-  radius:2, border:1, pad:26, shadow:'none',
-};
 let design = {...DEFAULT_DESIGN};
 
 let boxes=[], sel=-1;
 let pages=[{id:'pg_home',name:'Home',boxes:[]}], pg=0;   // multi-page; `boxes` is always pages[pg].boxes
 let shareChrome=true;                                     // nav + footer text shared across pages
 let versions=[];                                          // named snapshots
+let assets={};       // id -> data URL. Boxes point at them as "asset:<id>" so history stays light
+let components=[];   // custom components: {key,name,template,css,rule}
+let pageMeta=null;   // filled by the quality module
 const bid=()=>'b'+Math.random().toString(36).slice(2,9);
 const ensureIds=arr=>(arr||boxes).forEach(b=>{ if(!b.id) b.id=bid(); });
 /* tiny event bus so feature modules can hook in without touching internals */
@@ -111,9 +90,19 @@ function removeBox(i){
 /* ============================================================ canvas */
 const cv=$('sk'), ctx=cv.getContext('2d'), scroller=$('scroll');
 let W=0,H=0,cell=0,DPR=Math.min(devicePixelRatio||1,2);
+let zoom=1;   // 0.5 to 3; above 1 the sketch scrolls sideways
+function setZoom(z,anchorX){
+  const old=zoom; zoom=clamp(Math.round(z*100)/100,0.5,3);
+  if(zoom===old) return;
+  const sx=scroller.scrollLeft, ax=anchorX==null?scroller.clientWidth/2:anchorX;
+  resize();
+  scroller.scrollLeft=(sx+ax)*(zoom/old)-ax;
+  const zl=$('zoomLbl'); if(zl) zl.textContent=Math.round(zoom*100)+'%';
+}
 function resize(){
   const r=scroller.getBoundingClientRect();
-  W=r.width; cell=W/COLS; H=surfaceRows()*cell;
+  W=(scroller.clientWidth||r.width)*zoom; cell=W/COLS; H=surfaceRows()*cell;
+  cv.style.width=W+'px';
   cv.style.height=H+'px';
   cv.width=Math.max(1,Math.round(W*DPR)); cv.height=Math.max(1,Math.round(H*DPR));
   ctx.setTransform(DPR,0,0,DPR,0,0); paint();
@@ -240,127 +229,12 @@ function boxLabel(c){
   return NICE[c.type]+(c.cells>1?' \u00d7'+c.cells:'');
 }
 
-/* ============================================================ rows + classify */
-function buildRows(list,idxs){
-  const rows=[];
-  (idxs||list.map((_,i)=>i)).map(i=>({b:list[i],i})).sort((p,q)=>p.b.cy-q.b.cy||p.b.cx-q.b.cx).forEach(o=>{
-    const top=o.b.cy, bot=o.b.cy+o.b.ch;
-    const r=rows.find(r=>top<r.bottom&&r.top<bot);
-    if(r){ r.items.push(o); r.top=Math.min(r.top,top); r.bottom=Math.max(r.bottom,bot); }
-    else rows.push({top,bottom:bot,items:[o]});
-  });
-  rows.forEach(r=>r.items.sort((a,b)=>a.b.cx-b.b.cx));
-  return rows.sort((a,b)=>a.top-b.top);
-}
-/* Each rule is [test, type, confidence]. The first match wins; later matches become
-   the "also reads as" alternatives shown in the inspector. */
-function readRules(b,ctx){
-  const {first,last,n,ri,cols,alone,widest,nested}=ctx;
-  const full=b.cw>=cols*0.78, ratio=b.ch/b.cw;
-  return [
-    [!nested&&first&&full&&b.ch<=2,               'nav',     .95],
-    [!nested&&last&&full&&b.ch<=3&&n>1,            'footer',  .90],
-    [ri<=1&&full&&b.ch>=5,                         'hero',    .88],
-    [ri<=1&&!alone&&widest&&b.ch>=5&&b.cw>=cols*0.42,'hero',  .80],
-    [!alone&&ratio>=0.85&&b.cw<=cols*0.5,          'image',   .74],
-    [!alone&&b.cw<=cols*0.3&&ratio>1.3,            'sidebar', .84],
-    [!alone&&b.ch>=4,                              'text',    .70],
-    [full&&b.ch<=2,                                'stats',   .58],
-    [b.cw<=cols*0.3&&ratio>1.4,                    'sidebar', .84],
-    [b.cw<=cols*0.28&&b.ch<=2,                     'button',  .80],
-    [ratio>=0.75&&b.cw<cols*0.72,                  'image',   .68],
-    [full&&b.ch>=3&&b.ch<=4,                       'banner',  .52],
-    [true,                                         'text',    full?.74:.56],
-  ].filter(r=>r[0]);
-}
-function classifyIn(list,idxs,cols,nested){
-  const rows=buildRows(list,idxs);
-  const n=rows.length;
-  rows.forEach((row,ri)=>{
-    const first=ri===0, last=ri===n-1;
-    row.items.forEach(o=>{
-      const b=list[o.i]; b.row=ri;
-      if(b.locked){ b.conf=1; b.alts=[]; if(MULTI.indexOf(b.type)>=0&&!b.cells) b.cells=3; return; }
-      const alone=row.items.length===1;
-      const widest=row.items.every(o2=>list[o2.i].cw<=b.cw);
-      const hits=readRules(b,{first,last,n,ri,cols,alone,widest,nested});
-      const t=hits[0][1], c=hits[0][2];
-      const seen=new Set([t]), alts=[];
-      hits.slice(1).forEach(h=>{ if(!seen.has(h[1])){ seen.add(h[1]); alts.push([h[1],h[2]]); } });
-      if(t==='stats') b.cells=b.cells||3;
-      b.type=t; b.conf=c; b.alts=alts.slice(0,3);
-    });
-    const it=row.items.map(o=>list[o.i]);
-    if(it.length>=2&&!it.some(b=>b.locked)){
-      const ws=it.map(b=>b.cw);
-      const uniform=Math.max.apply(null,ws)-Math.min.apply(null,ws)<=1;
-      const same=it.every(b=>b.type===it[0].type);
-      if(uniform&&same&&it[0].cw<=cols*0.5){
-        const short=row.bottom-row.top<=2;
-        const t=(it.length>=4&&short)?'logos':(short?'stats':'cards');
-        it.forEach(b=>{ b.alts=[[b.type,b.conf]].concat(b.alts||[]).filter(a=>a[0]!==t).slice(0,3); b.type=t; b.conf=.86; });
-        it[0].cells=it.length; it[0].lead=true;
-        it.slice(1).forEach(b=>b.merged=true);
-      }
-    }
-  });
-  return rows;
-}
-/* classify(arr) works on any page's boxes; default is the current page */
-function classify(arr){
-  const src=arr||boxes;
-  const list=src.map(b=>({...b}));
-  const ids=new Set(list.map(b=>b.id));
-  const top=[], byParent={};
-  list.forEach((b,i)=>{
-    if(b.pid&&ids.has(b.pid)) (byParent[b.pid]=byParent[b.pid]||[]).push(i);
-    else top.push(i);
-  });
-  const rows=classifyIn(list,top,COLS,false);
-  top.forEach(i=>{
-    const p=list[i], k=byParent[p.id];
-    if(!k||!k.length) return;
-    p.type='group'; p.conf=1; p.alts=[]; p.cells=0; delete p.merged; delete p.lead;
-    p.kids=classifyIn(list,k,p.cw,true);
-  });
-  return {list,rows};
-}
+/* ============================================================ classify (core) */
+const customDefs=()=>components;
+function classify(arr){ return coreClassify(arr||boxes,{custom:components}); }
 
 /* ============================================================ content model */
 /* Every string lives in box.c under a stable key, so all of it is editable. */
-const D = {
-  brand:'Mirage', navA:'Docs', navB:'Components', navC:'Roadmap', navCta:'Get started',
-  heroH:'Everything you draw becomes real',
-  heroP:'Mirage reads the geometry of a wireframe the way a person does, then builds the page it implies.',
-  heroB1:'Start drawing', heroB2:'Read the docs',
-  textH:'How the classifier reads a box',
-  textP:'A box near the top edge that spans the full width is a nav bar. The same box halfway down the page, given more height, is a hero. Width relative to the page and height relative to width carry almost all the meaning in a wireframe.',
-  cards:[['Position','Where it sits','Vertical position separates a nav from a footer.'],
-    ['Proportion','How tall for its width','A tall narrow box is a rail, a wide short one a bar.'],
-    ['Company','What sits beside it','Boxes sharing a row are built side by side.'],
-    ['Span','How wide it runs','Width snaps to the column grid.'],
-    ['Order','What comes before','Reading order follows the vertical axis.'],
-    ['Override','What you corrected','A box you set by hand is never re-read.']],
-  stats:[['18','components'],['16','columns'],['0','dependencies'],['MIT','licence'],['7','targets'],['90','undo steps']],
-  logos:['Northwind','Cassini','Half Measure','Bellwether','Ordinal','Meridian'],
-  side:['Overview','Reading a box','The column grid','Overrides','Export'],
-  quote:'I drew the page on a napkin, photographed the napkin, and had the layout before the coffee arrived.',
-  who:'\u2014 an optimistic description of the roadmap',
-  tabs:['Geometry','Overrides','Export'],
-  tabsP:'Every rule is a threshold you can tune, and every box you set by hand is left alone.',
-  th:['Component','Signal','Shape','Conf.'],
-  rows:[['Nav bar','first row','full width','0.95'],['Hero','top rows','tall, full','0.88'],
-    ['Card grid','shared row','uniform','0.86']],
-  form:['Name','Email address','Message','Send'],
-  price:[['Free','$0','Everything, it is open source'],['Also free','$0','There is no second tier'],
-    ['Still free','$0','Self host it anywhere']],
-  banner:'Draw the page. Ship the page.', bannerB:'Open the editor',
-  btn:'Start drawing', btnB:'Read the docs', btnC:'Learn more',
-  footL:'Mirage', footR:'Drawn, not configured',
-  img:'IMAGE',
-  code:'<section class="c-row">\n  <header class="c-hero">…</header>\n  <figure class="c-img">…</figure>\n</section>',
-};
-function txt(b,key,fb){ return (b.c && b.c[key]!=null && b.c[key]!=='') ? b.c[key] : fb; }
 function setTxt(i,key,val){
   const b=boxes[i]; if(!b) return;
   if(!b.c) b.c={};
@@ -378,163 +252,37 @@ function syncChrome(type,key,val){
     L.forEach((c,k)=>{ if(c.type===type){ const tb=p.boxes[k]; tb.c=tb.c||{}; tb.c[key]=val; } });
   });
 }
-/* editable span */
-function E(i,key,val){
-  return '<span class="ed" contenteditable="true" spellcheck="false" data-b="'+i+'" data-k="'+
-    esc(key)+'">'+esc(val)+'</span>';
-}
-
-/* ============================================================ render */
+/* ============================================================ render (core markup) */
 const sheet=$('sheet');
-function alignClass(b,type){
-  if(ALIGNABLE.indexOf(type)<0) return '';
-  const a=b.align||'start';
-  return a==='start' ? '' : ' al-'+a;
+function pageNames(){ return pages.length>1?pages.map(p=>p.name):[]; }
+let EXPORT_LINKS=null;       // [{name,href}] while exporting a multi-page site
+let ASSET_MODE='inline';     // 'inline' (data URL) or a path prefix like 'assets/'
+const assetExt=u=>{ const m=/^data:image\/(\w+)/.exec(u||''); return m?(m[1]==='jpeg'?'jpg':m[1]):'png'; };
+function assetUrl(ref){
+  if(!ref||ref.indexOf('asset:')!==0) return ref||'';
+  const id=ref.slice(6), data=assets[id]||'';
+  return ASSET_MODE==='inline'?data:ASSET_MODE+id+'.'+assetExt(data);
 }
-/* responsive flags live on boxes: hide:['t','p'], stack:'t'|'keep', first:true */
-function rspClass(b){
-  let c='';
-  if(b.hide&&b.hide.indexOf('t')>=0) c+=' c-hide-t';
-  if(b.hide&&b.hide.indexOf('p')>=0) c+=' c-hide-p';
-  if(b.first) c+=' c-first';
-  return c;
-}
-function rowClass(items){
-  const lead=items[0]||{};
-  return lead.stack==='t'?' c-stack-t':(lead.stack==='keep'?' c-keep':'');
-}
-function pageNames(){ return pages.map(p=>p.name); }
-function renderRows(rows,list,host,counter){
-  rows.forEach(row=>{
-    const pairs=row.items.map(o=>({b:list[o.i],i:o.i})).filter(p=>!p.b.merged);
-    if(!pairs.length) return;
-    if(pairs.length===1){
-      const el=build(pairs[0].b,pairs[0].i,list);
-      if(el){ el.className+=' cx'+rspClass(pairs[0].b); el.style.animationDelay=(counter.k++*30)+'ms'; host.appendChild(el); }
-      return;
-    }
-    const wrap=document.createElement('div');
-    wrap.className='c-row cx'+rowClass(pairs.map(p=>p.b));
-    wrap.style.animationDelay=(counter.k++*30)+'ms';
-    const cols=pairs.map(p=>p.b.cw+'fr').join(' ');
-    wrap.style.setProperty('--cols',cols);
-    wrap.style.gridTemplateColumns=cols;
-    pairs.forEach(p=>{ const el=build(p.b,p.i,list); if(el){ el.className+=rspClass(p.b); wrap.appendChild(el); } });
-    host.appendChild(wrap);
-  });
-}
+const MK=createMarkup({classify, pageNames, links:()=>EXPORT_LINKS, asset:assetUrl,
+  custom:k=>components.find(c=>c.key===k)||null});
+const laidRows=arr=>MK.laidRows(arr);
 function render(){
   if(holdRender) return;
-  const {list,rows}=classify();
   sheet.className = theme ? 'th-'+theme : '';
   sheet.style.maxWidth = devW ? devW+'px' : '100%';
-  if(!rows.length){
+  const html=boxes.length?MK.body(boxes,{edit:true,pad:''}):'';
+  if(!html){
     sheet.innerHTML='<div class="void"><p class="t1">The page renders here</p>'+
       '<p class="t2">Click any text to edit it. Boxes that share a row are built side by side.</p></div>';
     emit('render');
     return;
   }
-  sheet.innerHTML='';
-  renderRows(rows,list,sheet,{k:0});
+  sheet.innerHTML=html;
+  Array.prototype.forEach.call(sheet.children,(el,k)=>{ el.classList.add('cx'); el.style.animationDelay=(k*30)+'ms'; });
   emit('render');
 }
-const shapeClass=b=>b.shape&&b.shape!=='rect' ? ' sh-'+b.shape : '';
-
-function build(b,i,list){
-  const d=document.createElement('div');
-  if(b.type==='group'){
-    d.className='c-group';
-    renderRows(b.kids||[],list,d,{k:0});
-    return d;
-  }
-  const hpx=Math.max(60,b.ch*46), n=clamp(b.cells||3,2,6);
-  const sc=shapeClass(b), al=alignClass(b,b.type);
-  const T=(k,fb)=>E(i,k,txt(b,k,fb));
-
-  switch(b.type){
-    case 'nav':
-      d.className='c-nav'+al;
-      { const pn=pages.length>1?pageNames():null;
-      d.innerHTML='<span class="lg">'+T('brand',D.brand)+'</span><span class="ln">'+
-        (pn?pn.slice(0,4).map((nm,j)=>T('navP'+j,nm)).join(''):T('navA',D.navA)+T('navB',D.navB)+T('navC',D.navC))+
-        '</span><button class="cta">'+T('navCta',D.navCta)+'</button>'; }
-      break;
-    case 'hero':
-      d.className='c-hero'+al;
-      d.innerHTML='<h1>'+T('heroH',D.heroH)+'</h1><p>'+T('heroP',D.heroP)+'</p>'+
-        '<div class="bs"><button class="b1">'+T('heroB1',D.heroB1)+'</button>'+
-        '<button class="b2">'+T('heroB2',D.heroB2)+'</button></div>'; break;
-    case 'cards':
-      d.className='c-grid'; d.style.gridTemplateColumns='repeat('+n+',minmax(0,1fr))';
-      d.innerHTML=D.cards.slice(0,n).map((c,j)=>
-        '<div class="c-card'+sc+'"><div class="k">'+T('cardK'+j,c[0])+'</div>'+
-        '<h4>'+T('cardH'+j,c[1])+'</h4><p>'+T('cardP'+j,c[2])+'</p></div>').join(''); break;
-    case 'text':
-      d.className='c-text'+al;
-      d.innerHTML='<h3>'+T('textH',D.textH)+'</h3><p>'+T('textP',D.textP)+'</p>'; break;
-    case 'image':
-      d.className='c-img'+sc; d.style.minHeight=hpx+'px';
-      d.innerHTML=T('img',D.img); break;
-    case 'gallery':
-      d.className='c-gal'; d.style.gridTemplateColumns='repeat('+n+',minmax(0,1fr))';
-      d.innerHTML=Array.from({length:n},(_,j)=>'<div class="c-img'+sc+'" style="min-height:'+
-        Math.max(70,hpx/1.6)+'px">'+T('gal'+j,D.img)+'</div>').join(''); break;
-    case 'sidebar':
-      d.className='c-side'+al;
-      d.innerHTML=D.side.map((t,j)=>'<div class="it'+(j===0?' a':'')+'">'+T('side'+j,t)+'</div>').join(''); break;
-    case 'stats':
-      d.className='c-stats'; d.style.gridTemplateColumns='repeat('+n+',minmax(0,1fr))';
-      d.innerHTML=D.stats.slice(0,n).map((s,j)=>'<div class="s"><div class="n">'+T('statN'+j,s[0])+
-        '</div><div class="l">'+T('statL'+j,s[1])+'</div></div>').join(''); break;
-    case 'logos':
-      d.className='c-logos'+al;
-      d.innerHTML=D.logos.slice(0,Math.max(n,4)).map((l,j)=>'<span class="lo">'+T('logo'+j,l)+'</span>').join(''); break;
-    case 'quote':
-      d.className='c-quote'+al;
-      d.innerHTML='<blockquote>'+T('quote',D.quote)+'</blockquote><div class="who">'+T('who',D.who)+'</div>'; break;
-    case 'form':
-      d.className='c-form'+al;
-      d.innerHTML='<div class="inp">'+T('form0',D.form[0])+'</div><div class="inp">'+T('form1',D.form[1])+
-        '</div><div class="inp" style="height:70px">'+T('form2',D.form[2])+'</div>'+
-        '<div class="sb">'+T('form3',D.form[3])+'</div>'; break;
-    case 'table':
-      d.className='c-table';
-      d.innerHTML='<table><thead><tr>'+D.th.map((h,j)=>'<th>'+T('th'+j,h)+'</th>').join('')+
-        '</tr></thead><tbody>'+D.rows.map((r,ri)=>'<tr>'+r.map((c,ci)=>'<td>'+
-        T('td'+ri+'_'+ci,c)+'</td>').join('')+'</tr>').join('')+'</tbody></table>'; break;
-    case 'tabs':
-      d.className='c-tabs'+al;
-      d.innerHTML='<div class="tl">'+D.tabs.map((t,j)=>'<span class="tb'+(j===0?' a':'')+'">'+
-        T('tab'+j,t)+'</span>').join('')+'</div><p>'+T('tabsP',D.tabsP)+'</p>'; break;
-    case 'price':
-      d.className='c-price'; d.style.gridTemplateColumns='repeat('+Math.min(n,3)+',minmax(0,1fr))';
-      d.innerHTML=D.price.slice(0,Math.min(n,3)).map((p,j)=>'<div class="p'+sc+'">'+
-        '<div class="tn">'+T('priceN'+j,p[0])+'</div><div class="am">'+T('priceA'+j,p[1])+'</div>'+
-        '<ul><li>'+T('priceF'+j,p[2])+'</li></ul></div>').join(''); break;
-    case 'banner':
-      d.className='c-banner'+al;
-      d.innerHTML='<h3>'+T('banner',D.banner)+'</h3><span class="b">'+T('bannerB',D.bannerB)+'</span>'; break;
-    case 'code':
-      d.className='c-code';
-      d.innerHTML='<pre><code class="ed" contenteditable="true" spellcheck="false" data-b="'+i+
-        '" data-k="code">'+esc(txt(b,'code',D.code))+'</code></pre>'; break;
-    case 'button': {
-      const v=b.variant||'primary';
-      d.className='c-btn'+al;
-      d.innerHTML = v==='group'
-        ? '<div class="bgroup"><button class="bt bt-primary">'+T('btn',D.btn)+'</button>'+
-          '<button class="bt bt-secondary">'+T('btnB',D.btnB)+'</button>'+
-          '<button class="bt bt-ghost">'+T('btnC',D.btnC)+'</button></div>'
-        : '<button class="bt bt-'+v+'">'+T('btn',D.btn)+'</button>';
-      break;
-    }
-    case 'footer':
-      d.className='c-foot'+al;
-      d.innerHTML='<span>'+T('footL',D.footL)+'</span><span class="sp">'+T('footR',D.footR)+'</span>'; break;
-    default: return null;
-  }
-  return d;
-}
+/* links in the preview are for show */
+sheet.addEventListener('click',e=>{ const a=e.target.closest('a'); if(a) e.preventDefault(); });
 
 /* inline editing */
 sheet.addEventListener('input',e=>{
@@ -684,186 +432,28 @@ function fontImport(){
     [...names].map(n=>'family='+n.replace(/ /g,'+')+':wght@400;500;600;700;800;900').join('&')+
     "&display=swap');\n\n";
 }
-function laidRows(arr){
-  const {list,rows}=classify(arr);
-  const lay=rs=>rs.map(r=>({items:r.items.map(o=>list[o.i]).filter(b=>!b.merged).map(b=>{
-    if(b.type==='group') b.rows=lay(b.kids||[]);
-    return b;
-  })})).filter(r=>r.items.length);
-  return lay(rows);
-}
-/* add classes to the first class="" of a rendered snippet */
-const addCls=(html,cls)=>cls?html.replace('class="','class="'+cls.trim()+' '):html;
-let EXPORT_LINKS=null;   // set to [{name,href}] while exporting a multi-page site
-const TAG={nav:'nav',hero:'header',footer:'footer',image:'figure',quote:'figure',
-  form:'form',sidebar:'aside',code:'pre',table:'div'};
-
-function mk(b,pad){
-  return addCls(mkInner(b,pad),rspClass(b));
-}
-function rowsHTML(R,pad){
-  return R.map(row=>{
-    if(row.items.length===1) return mk(row.items[0],pad);
-    const cols=row.items.map(b=>b.cw+'fr').join(' ');
-    return pad+'<section class="c-row'+rowClass(row.items)+'" style="--cols:'+cols+';grid-template-columns:'+cols+'">\n'+
-      row.items.map(b=>mk(b,pad+'  ')).join('\n')+'\n'+pad+'</section>';
-  }).join('\n\n');
-}
-function mkInner(b,pad){
-  const n=clamp(b.cells||3,2,6), sc=shapeClass(b), al=alignClass(b,b.type);
-  const t=TAG[b.type]||'section', P=s=>pad+s, T=(k,fb)=>esc(txt(b,k,fb));
-  const wrap=(cls,inner)=>P('<'+t+' class="'+cls+'">')+'\n'+
-    inner.split('\n').map(l=>pad+'  '+l).join('\n')+'\n'+P('</'+t+'>');
-  switch(b.type){
-    case 'group': return P('<section class="c-group">')+'\n'+rowsHTML(b.rows||[],pad+'  ')+'\n'+P('</section>');
-    case 'nav': {
-      let links;
-      if(EXPORT_LINKS) links=EXPORT_LINKS.map((l,j)=>'<a href="'+l.href+'">'+T('navP'+j,l.name)+'</a>').join('');
-      else if(pages.length>1) links=pageNames().slice(0,4).map((nm,j)=>'<span>'+T('navP'+j,nm)+'</span>').join('');
-      else links='<span>'+T('navA',D.navA)+'</span><span>'+T('navB',D.navB)+'</span><span>'+T('navC',D.navC)+'</span>';
-      return wrap('c-nav'+al,'<span class="lg">'+T('brand',D.brand)+'</span>\n'+
-      '<span class="ln">'+links+'</span>\n<button class="cta">'+T('navCta',D.navCta)+'</button>');
-    }
-    case 'hero': return wrap('c-hero'+al,'<h1>'+T('heroH',D.heroH)+'</h1>\n<p>'+T('heroP',D.heroP)+'</p>\n'+
-      '<div class="bs"><button class="b1">'+T('heroB1',D.heroB1)+'</button><button class="b2">'+
-      T('heroB2',D.heroB2)+'</button></div>');
-    case 'cards': return P('<section class="c-grid" style="grid-template-columns:repeat('+n+',minmax(0,1fr))">')+'\n'+
-      D.cards.slice(0,n).map((c,j)=>pad+'  <article class="c-card'+sc+'"><div class="k">'+T('cardK'+j,c[0])+
-      '</div><h4>'+T('cardH'+j,c[1])+'</h4><p>'+T('cardP'+j,c[2])+'</p></article>').join('\n')+'\n'+P('</section>');
-    case 'text': return wrap('c-text'+al,'<h3>'+T('textH',D.textH)+'</h3>\n<p>'+T('textP',D.textP)+'</p>');
-    case 'image': return P('<figure class="c-img'+sc+'">'+T('img',D.img)+'</figure>');
-    case 'gallery': return P('<section class="c-gal" style="grid-template-columns:repeat('+n+',minmax(0,1fr))">')+'\n'+
-      Array.from({length:n},(_,j)=>pad+'  <figure class="c-img'+sc+'">'+T('gal'+j,D.img)+'</figure>').join('\n')+'\n'+P('</section>');
-    case 'sidebar': return wrap('c-side'+al, D.side.map((s,j)=>'<div class="it'+(j===0?' a':'')+'">'+
-      T('side'+j,s)+'</div>').join('\n'));
-    case 'stats': return P('<section class="c-stats" style="grid-template-columns:repeat('+n+',minmax(0,1fr))">')+'\n'+
-      D.stats.slice(0,n).map((s,j)=>pad+'  <div class="s"><div class="n">'+T('statN'+j,s[0])+
-      '</div><div class="l">'+T('statL'+j,s[1])+'</div></div>').join('\n')+'\n'+P('</section>');
-    case 'logos': return P('<section class="c-logos'+al+'">')+'\n'+
-      D.logos.slice(0,Math.max(n,4)).map((l,j)=>pad+'  <span class="lo">'+T('logo'+j,l)+'</span>').join('\n')+'\n'+P('</section>');
-    case 'quote': return wrap('c-quote'+al,'<blockquote>'+T('quote',D.quote)+'</blockquote>\n<figcaption class="who">'+
-      T('who',D.who)+'</figcaption>');
-    case 'form': return wrap('c-form'+al, D.form.slice(0,3).map((f,j)=>'<div class="inp">'+T('form'+j,f)+'</div>').join('\n')+
-      '\n<button class="sb">'+T('form3',D.form[3])+'</button>');
-    case 'table': return P('<div class="c-table"><table>')+'\n'+pad+'  <thead><tr>'+
-      D.th.map((h,j)=>'<th>'+T('th'+j,h)+'</th>').join('')+'</tr></thead>\n'+pad+'  <tbody>'+
-      D.rows.map((r,ri)=>'<tr>'+r.map((c,ci)=>'<td>'+T('td'+ri+'_'+ci,c)+'</td>').join('')+'</tr>').join('')+
-      '</tbody>\n'+P('</table></div>');
-    case 'tabs': return wrap('c-tabs'+al,'<div class="tl">'+D.tabs.map((t2,j)=>'<span class="tb'+(j===0?' a':'')+'">'+
-      T('tab'+j,t2)+'</span>').join('')+'</div>\n<p>'+T('tabsP',D.tabsP)+'</p>');
-    case 'price': return P('<section class="c-price" style="grid-template-columns:repeat('+Math.min(n,3)+',minmax(0,1fr))">')+'\n'+
-      D.price.slice(0,Math.min(n,3)).map((p,j)=>pad+'  <div class="p'+sc+'"><div class="tn">'+T('priceN'+j,p[0])+
-      '</div><div class="am">'+T('priceA'+j,p[1])+'</div><ul><li>'+T('priceF'+j,p[2])+'</li></ul></div>').join('\n')+
-      '\n'+P('</section>');
-    case 'banner': return wrap('c-banner'+al,'<h3>'+T('banner',D.banner)+'</h3>\n<a class="b" href="#">'+
-      T('bannerB',D.bannerB)+'</a>');
-    case 'code': return P('<pre class="c-code"><code>'+esc(txt(b,'code',D.code))+'</code></pre>');
-    case 'button': {
-      const v=b.variant||'primary';
-      if(v==='group') return P('<div class="c-btn'+al+'"><div class="bgroup">'+
-        '<button class="bt bt-primary">'+T('btn',D.btn)+'</button>'+
-        '<button class="bt bt-secondary">'+T('btnB',D.btnB)+'</button>'+
-        '<button class="bt bt-ghost">'+T('btnC',D.btnC)+'</button></div></div>');
-      return P('<div class="c-btn'+al+'"><button class="bt bt-'+v+'">'+T('btn',D.btn)+'</button></div>');
-    }
-    case 'footer': return wrap('c-foot'+al,'<span>'+T('footL',D.footL)+'</span>\n<span class="sp">'+
-      T('footR',D.footR)+'</span>');
-  }
-  return P('<div></div>');
-}
-
-function exBody(arr){
-  const R=laidRows(arr);
-  return R.length?rowsHTML(R,'  '):'';
-}
+function exBody(arr){ return MK.body(arr||boxes); }
+const mk=(b,pad)=>MK.mk(b,pad||'',{st:{h1:true}});
 function exCSS(){
   const {rules,frames}=collectCSS();
   return fontImport()+rules.join('\n')+(frames.length?'\n\n'+frames.join('\n'):'');
 }
 function exHTML(){
-  const R=laidRows();
-  if(!R.length) return '<!-- nothing drawn yet -->';
-  const body=rowsHTML(R,'  ');
+  const body=MK.body(boxes);
+  if(!body) return '<!-- nothing drawn yet -->';
   const {rules,frames}=collectCSS();
   const cls='page'+(theme?' th-'+theme:'');
   return '<!-- generated by Mirage · style: '+(theme==='__custom'?'custom (design.md)':(theme||'plain'))+' -->\n'+
     '<main class="'+cls+'">\n'+body+'\n</main>\n\n<style>\n'+fontImport()+rules.join('\n')+
     (frames.length?'\n\n'+frames.join('\n'):'')+'\n</style>';
 }
-const RMAP={nav:'Nav',hero:'Hero',cards:'CardGrid',text:'Prose',image:'Figure',gallery:'Gallery',
-  sidebar:'Rail',stats:'Stats',logos:'LogoRow',quote:'Quote',form:'Form',table:'DataTable',
-  tabs:'Tabs',price:'Pricing',banner:'Banner',code:'CodeBlock',button:'Button',footer:'Footer',group:'Group'};
-function exReact(){
-  const R=laidRows(); if(!R.length) return '// nothing drawn yet';
-  const one=(b,pad)=>{
-    const n=clamp(b.cells||3,2,6), C=RMAP[b.type];
-    const bits=[];
-    if(b.align&&b.align!=='start') bits.push('align="'+b.align+'"');
-    if(b.shape&&b.shape!=='rect') bits.push('shape="'+b.shape+'"');
-    if(b.type==='button') bits.push('variant="'+(b.variant||'primary')+'"');
-    if(MULTI.indexOf(b.type)>=0) bits.push('columns={'+n+'}');
-    if(b.type==='hero') bits.push('title="'+txt(b,'heroH',D.heroH).replace(/"/g,'&quot;')+'"');
-    if(b.type==='nav') bits.push('brand="'+txt(b,'brand',D.brand).replace(/"/g,'&quot;')+'"');
-    if(b.hide&&b.hide.length) bits.push('hideOn={'+JSON.stringify(b.hide.map(h=>h==='t'?'tablet':'phone'))+'}');
-    if(b.type==='group') return pad+'<Group>\n'+rowsJSX(b.rows||[],pad+'  ')+'\n'+pad+'</Group>';
-    return pad+'<'+C+(bits.length?' '+bits.join(' '):'')+' />';
-  };
-  const rowsJSX=(rows,pad)=>rows.map(row=>row.items.length===1?one(row.items[0],pad)
-    :pad+'<Row cols={['+row.items.map(b=>b.cw).join(',')+']}'+(row.items[0].stack?' stack="'+(row.items[0].stack==='t'?'tablet':'never')+'"':'')+'>\n'+
-     row.items.map(b=>one(b,pad+'  ')).join('\n')+'\n'+pad+'</Row>').join('\n');
-  const body=rowsJSX(R,'      ');
-  const used=[];
-  const walk=rs=>rs.forEach(r=>r.items.forEach(b=>{ const c=RMAP[b.type]; if(c&&used.indexOf(c)<0) used.push(c); if(b.rows) walk(b.rows); }));
-  walk(R);
-  if(R.some(r=>r.items.length>1)) used.unshift('Row');
-  return "// generated by Mirage\nimport { "+used.join(', ')+" } from '@mirage/ui'\n"+
-    "import './design.css' // generated from design.md\n\n"+
-    "export default function Page() {\n  return (\n    <main className=\"page\">\n"+body+"\n    </main>\n  )\n}";
-}
-function exTW(){
-  const R=laidRows(); if(!R.length) return '<!-- nothing drawn yet -->';
-  const SH={round:'rounded-lg',pill:'rounded-full',circle:'rounded-full aspect-square',
-    squircle:'rounded-3xl',cut:''};
-  const AL={start:'',center:'text-center items-center justify-center',end:'text-right items-end justify-end'};
-  const BT={primary:'bg-neutral-900 text-white px-5 py-2.5',secondary:'border-2 border-neutral-900 px-5 py-2.5',
-    ghost:'px-5 py-2.5 hover:bg-neutral-100',pill:'bg-neutral-900 text-white px-6 py-2.5 rounded-full',
-    link:'underline underline-offset-4',group:'flex gap-2'};
-  const base={nav:'flex items-center gap-5 px-6 py-3.5 border-b border-neutral-200',
-    hero:'px-6 py-14',cards:'grid gap-3 p-6',text:'p-6 max-w-prose',
-    image:'bg-neutral-100 min-h-[180px] grid place-items-center',gallery:'grid gap-2 p-6',
-    sidebar:'p-6 space-y-1',stats:'grid gap-px bg-neutral-200 p-6',
-    logos:'flex flex-wrap items-center justify-between gap-3 p-6 opacity-70',
-    quote:'px-6 py-10',form:'p-6 grid gap-2 max-w-md',table:'p-6 overflow-x-auto',
-    tabs:'p-6',price:'grid gap-3 p-6',banner:'px-6 py-12 bg-neutral-900 text-white',
-    code:'m-6 p-4 bg-neutral-900 text-neutral-100 text-xs',button:'p-6 flex',
-    footer:'p-6 border-t border-neutral-200 text-sm text-neutral-500'};
-  const one=(b,pad)=>{
-    const n=clamp(b.cells||3,2,6);
-    let cls=base[b.type]||'p-6';
-    if(['cards','gallery','stats','price'].indexOf(b.type)>=0) cls+=' grid-cols-1 md:grid-cols-'+n;
-    if(SHAPED.indexOf(b.type)>=0&&b.shape&&SH[b.shape]) cls+=' '+SH[b.shape];
-    if(b.align&&AL[b.align]) cls+=' '+AL[b.align];
-    if(b.hide&&b.hide.indexOf('t')>=0) cls+=' max-md:hidden';
-    else if(b.hide&&b.hide.indexOf('p')>=0) cls+=' max-sm:hidden';
-    if(b.first) cls+=' max-md:order-first';
-    if(b.type==='group') return pad+'<section class="p-6">\n'+rowsTW(b.rows||[],pad+'  ')+'\n'+pad+'</section>';
-    if(b.type==='button') return pad+'<div class="'+cls+'"><button class="'+BT[b.variant||'primary']+'">'+
-      esc(txt(b,'btn',D.btn))+'</button></div>';
-    const t=TAG[b.type]||'section';
-    return pad+'<'+t+' class="'+cls+'">'+NICE[b.type]+'</'+t+'>';
-  };
-  const rowsTW=(rows,pad)=>rows.map(row=>{
-    if(row.items.length===1) return one(row.items[0],pad);
-    const fr=row.items.map(b=>b.cw+'fr').join('_'), st=row.items[0].stack;
-    const g=st==='keep'?'grid grid-cols-['+fr+']':(st==='t'?'grid grid-cols-1 lg:grid-cols-['+fr+']':'grid grid-cols-1 md:grid-cols-['+fr+']');
-    return pad+'<section class="'+g+'">\n'+row.items.map(b=>one(b,pad+'  ')).join('\n')+'\n'+pad+'</section>';
-  }).join('\n\n');
-  const body=rowsTW(R,'  ');
-  return '<!-- generated by Mirage · Tailwind -->\n<main>\n'+body+'\n</main>';
-}
+const exReact=()=>MK.react(boxes);
+const exTW=()=>MK.tailwind(boxes);
 function exJSON(){
   syncPage();
-  return JSON.stringify({version:6,name:project.name,cols:COLS,theme,design,shareChrome,pages,boxes},null,2);
+  /* "read" is what each box was read as, for tools outside Mirage (the Figma plugin, CI); Mirage itself ignores it */
+  const typed=pages.map(p=>{ const L=classify(p.boxes).list; return {...p,boxes:p.boxes.map((b,i)=>({...b,read:L[i].type}))}; });
+  return JSON.stringify({version:7,name:project.name,cols:COLS,theme,design,shareChrome,components,pageMeta,pages:typed,assets},null,2);
 }
 const EXPORTS={html:exHTML,react:exReact,tw:exTW,design:designMd,json:exJSON};
 const EXT={html:'html',react:'jsx',tw:'html',design:'md',json:'json'};
@@ -912,7 +502,8 @@ const STORE=(()=>{
 const uid=()=>'p_'+Date.now().toString(36)+'_'+Math.random().toString(36).slice(2,7);
 function syncPage(){ if(pages[pg]) pages[pg].boxes=boxes; }
 const snapshot=()=>{ syncPage(); return {id:project.id,name:project.name,cols:COLS,theme,design:clone(design),
-  pages:clone(pages),pg,shareChrome,versions:clone(versions),boxes:clone(boxes),updated:Date.now()}; };
+  pages:clone(pages),pg,shareChrome,versions:clone(versions),assets,components:clone(components),pageMeta:clone(pageMeta),
+  boxes:clone(boxes),updated:Date.now()}; };
 function scheduleSave(){ clearTimeout(saveTimer); saveTimer=setTimeout(saveNow,700); }
 function saveNow(){
   if(!project.id) project.id=uid();
@@ -927,6 +518,7 @@ function loadProject(p){
   pages.forEach(x=>ensureIds(x.boxes));
   pg=clamp(p.pg||0,0,pages.length-1); boxes=pages[pg].boxes;
   shareChrome=p.shareChrome!==false; versions=p.versions||[];
+  assets=p.assets||{}; setComponents(p.components||[]); pageMeta=p.pageMeta||null;
   theme=p.theme||'';
   design=Object.assign({},DEFAULT_DESIGN,p.design||{});
   $('themeSel').value=theme; $('projName').textContent=project.name;
@@ -937,6 +529,7 @@ function loadProject(p){
 function newProject(){
   project={id:uid(),name:'Untitled sketch'};
   pages=[{id:'pg_home',name:'Home',boxes:[]}]; pg=0; versions=[]; shareChrome=true;
+  assets={}; setComponents([]); pageMeta=null;
   boxes=pages[0].boxes; sel=-1; design={...DEFAULT_DESIGN};
   syncDesignForm(); applyDesign();
   $('projName').textContent=project.name;
@@ -968,6 +561,32 @@ function renderProjects(){
       list.appendChild(row);
     });
   });
+}
+
+/* ============================================================ custom components */
+/* Templates can arrive in share links or from collaborators, so they are sanitised:
+   no scripts, no event handlers, no javascript: URLs, no frames. */
+function cleanTemplate(html){
+  const doc=new DOMParser().parseFromString('<template>'+String(html||'')+'</template>','text/html');
+  const root=doc.querySelector('template').content;
+  root.querySelectorAll('script,iframe,object,embed,link,meta,base,style').forEach(n=>n.remove());
+  root.querySelectorAll('*').forEach(el=>{
+    [...el.attributes].forEach(a=>{
+      if(/^on/i.test(a.name)||/^\s*(javascript|data|vbscript):/i.test(a.value)&&/^(href|src|action|formaction|xlink:href)$/i.test(a.name)) el.removeAttribute(a.name);
+    });
+  });
+  const box=doc.createElement('div'); box.appendChild(root.cloneNode(true)); return box.innerHTML;
+}
+function cleanCSS(css){ return String(css||'').replace(/<\/?style[^>]*>/gi,'').replace(/@import[^;]*;/gi,'').replace(/expression\s*\(/gi,'').replace(/url\s*\(\s*['"]?\s*javascript:/gi,'url('); }
+function setComponents(list){
+  Object.keys(NICE).forEach(k=>{ if(/^x_/.test(k)) delete NICE[k]; });
+  components=(list||[]).filter(c=>c&&/^x_[a-z0-9_]+$/.test(c.key)).map(c=>({
+    key:c.key, name:String(c.name||c.key).slice(0,40), template:cleanTemplate(c.template),
+    css:cleanCSS(c.css), rule:Object.assign({auto:true},c.rule||{}) }));
+  components.forEach(c=>{ NICE[c.key]=c.name; });
+  const st=$('customComp'); if(st) st.textContent=components.map(c=>c.css).join('\n');
+  const g=$('typeGrid');
+  if(g){ g.innerHTML=''; chipGroup(g,TYPES.concat(components.map(c=>[c.key,c.name])),'t',pickType); }
 }
 
 /* ============================================================ pages */
@@ -1107,15 +726,45 @@ function snapEdges(r, idx){
   return r;
 }
 let mode=null,anchor=null,orig=null,hnd=null,moved=false;
+/* touch: two fingers pinch-zoom; a long press inside a box starts drawing a child */
+const touches=new Map(); let pinch=null, pressT=null;
+const dist=()=>{ const [a,b]=[...touches.values()]; return Math.hypot(a.x-b.x,a.y-b.y); };
+cv.addEventListener('pointerdown',e=>{ if(e.pointerType==='touch') touches.set(e.pointerId,{x:e.clientX,y:e.clientY}); },true);
 cv.addEventListener('pointerdown',e=>{
-  if(e.button===2) return;
+  if(touches.size===2){
+    clearTimeout(pressT); drawing=null; mode='pinch'; guides=[];
+    const r=scroller.getBoundingClientRect(), [a,b]=[...touches.values()];
+    pinch={d:dist(),z:zoom,ax:(a.x+b.x)/2-r.left}; paint(); e.stopImmediatePropagation(); return;
+  }
+},true);
+cv.addEventListener('pointermove',e=>{
+  if(e.pointerType==='touch'&&touches.has(e.pointerId)) touches.set(e.pointerId,{x:e.clientX,y:e.clientY});
+  if(mode==='pinch'&&pinch&&touches.size===2){ setZoom(pinch.z*dist()/pinch.d,pinch.ax); e.stopImmediatePropagation(); }
+},true);
+const dropTouch=e=>{ touches.delete(e.pointerId); if(mode==='pinch'&&touches.size<2){ mode=null; pinch=null; } };
+cv.addEventListener('pointerup',dropTouch,true); cv.addEventListener('pointercancel',dropTouch,true);
+cv.addEventListener('wheel',e=>{
+  if(!(e.ctrlKey||e.metaKey)) return;
+  e.preventDefault();
+  setZoom(zoom*(e.deltaY<0?1.1:1/1.1),e.clientX-scroller.getBoundingClientRect().left);
+},{passive:false});
+cv.addEventListener('pointerdown',e=>{
+  if(e.button===2||mode==='pinch') return;
   const p=cellAt(e); anchor=p; moved=false;
   try{ cv.setPointerCapture(e.pointerId); }catch(_){}
   const h=hitHandle(p);
   if(h){ mode='resize'; hnd=h; orig={...boxes[sel]}; return; }
   const i=hit(p);
   /* Alt-drag inside a box draws a child box instead of moving it */
-  if(i>=0&&!e.altKey){ if(sel!==i){ sel=i; syncSel(); } mode='move'; orig={...boxes[i]}; paint(); return; }
+  if(i>=0&&!e.altKey){
+    if(sel!==i){ sel=i; syncSel(); } mode='move'; orig={...boxes[i]}; paint();
+    if(e.pointerType==='touch'&&!boxes[i].pid){   // hold still for half a second: draw inside instead
+      clearTimeout(pressT);
+      pressT=setTimeout(()=>{ if(mode==='move'&&!moved){ mode='draw'; sel=-1; syncSel(); drawing={x0:p.x,y0:p.y,x1:p.x,y1:p.y}; paint();
+        if(navigator.vibrate) navigator.vibrate(12); toast('Drawing inside the box'); } },480);
+    }
+    return;
+  }
   sel=-1; syncSel(); mode='draw'; drawing={x0:p.x,y0:p.y,x1:p.x,y1:p.y};
 });
 cv.addEventListener('pointermove',e=>{
@@ -1150,6 +799,8 @@ function grow(){
     cv.height=Math.max(1,Math.round(H*DPR)); ctx.setTransform(DPR,0,0,DPR,0,0); }
 }
 function endPointer(){
+  clearTimeout(pressT);
+  if(mode==='pinch') return;
   guides=[];
   if(mode==='draw'){
     const r=drawRect(); drawing=null;
@@ -1252,13 +903,14 @@ function chipGroup(host,items,attr,onPick){
     host.appendChild(b);
   });
 }
-chipGroup($('typeGrid'),TYPES,'t',v=>{
+function pickType(v){
   const x=boxes[sel]; if(!x) return;
   x.type=v; x.locked=true;
   if(MULTI.indexOf(v)>=0&&!x.cells) x.cells=3;
   if(v==='button'&&!x.variant) x.variant='primary';
   commit(true);
-});
+}
+chipGroup($('typeGrid'),TYPES,'t',pickType);
 chipGroup($('shapeGrid'),SHAPES,'s',v=>{ const x=boxes[sel]; if(!x) return; x.shape=v; commit(true); });
 chipGroup($('varGrid'),VARIANTS,'v',v=>{ const x=boxes[sel]; if(!x) return;
   x.variant=v; x.type='button'; x.locked=true; commit(true); });
@@ -1283,6 +935,7 @@ function syncSel(){
   $('paneInsp').classList.toggle('on',has);
   $('ftSel').textContent=has?('box '+(sel+1)+' of '+boxes.length):'no selection';
   syncLayers();
+  emit('select',has?sel:-1);
   if(!has) return;
   const b=boxes[sel], c=classify().list[sel];
   $('inspHead').textContent='Box '+(sel+1)+' \u2014 '+NICE[c.type];
@@ -1533,6 +1186,14 @@ document.querySelectorAll('.modal').forEach(m=>{
   m.addEventListener('click',e=>{ if(e.target===m) m.classList.remove('on'); });
 });
 
+/* Escape always closes the open popup, even from inside its text fields */
+document.addEventListener('keydown',e=>{
+  if(e.key!=='Escape') return;
+  const open=[...document.querySelectorAll('.modal.on')];
+  if(!open.length) return;
+  e.preventDefault(); e.stopPropagation();
+  open[open.length-1].classList.remove('on');
+},true);
 document.addEventListener('keydown',e=>{
   const typing=/INPUT|TEXTAREA|SELECT/.test(e.target.tagName)||e.target.isContentEditable;
   if(e.key==='Escape'){
@@ -1606,10 +1267,18 @@ window.Mirage={
   get shareChrome(){ return shareChrome; }, set shareChrome(v){ shareChrome=!!v; scheduleSave(); },
   get cell(){ return cell; }, canvas:cv,
   on, emit, bid, clone, esc, clamp, contains, overlaps, kidsOf,
-  classify, laidRows, rowsHTML, mk, exBody, exCSS, exHTML, exReact, exTW, designMd, collectCSS, fontImport,
+  classify, laidRows, rowsHTML:(R,pad)=>MK.rowsHTML(R,pad,{}), mk, MK, fieldsFor, templateFields, exBody, exCSS, exHTML, exReact, exTW, designMd, collectCSS, fontImport,
   txt, setTxt, render, paint, resize, commit, push, toast, saveNow, scheduleSave, syncSel, syncPage,
   switchPage, addPage, syncPages, loadProject, newProject, STORE, uid, cellAt,
   setExportLinks(v){ EXPORT_LINKS=v; },
+  get zoom(){ return zoom; }, setZoom,
+  setAssetMode(v){ ASSET_MODE=v||'inline'; },
+  get assets(){ return assets; },
+  addAsset(dataUrl){ const id=bid(); assets[id]=dataUrl; scheduleSave(); emit('asset',{id,dataUrl}); return 'asset:'+id; },
+  putAsset(id,dataUrl){ if(!assets[id]){ assets[id]=dataUrl; render(); } },
+  assetUrl, assetExt,
+  get components(){ return components; }, setComponents(v){ setComponents(v); render(); paint(); syncSel(); scheduleSave(); emit('change'); },
+  get pageMeta(){ return pageMeta; }, set pageMeta(v){ pageMeta=v; scheduleSave(); emit('change'); },
   exports:EXPORTS, ext:EXT, exnotes:EXNOTES, refreshExport,
   /* replace the whole project state, e.g. from a share link or a collaborator */
   applyState(st,opts){
@@ -1620,12 +1289,16 @@ window.Mirage={
     if('theme' in st){ theme=st.theme||''; $('themeSel').value=theme; }
     if(st.design){ design=Object.assign({},DEFAULT_DESIGN,st.design); syncDesignForm(); applyDesign(); }
     if('shareChrome' in st) shareChrome=st.shareChrome!==false;
+    if(st.assets) Object.assign(assets,st.assets);
+    if(st.components) setComponents(st.components);
+    if('pageMeta' in st) pageMeta=st.pageMeta||null;
     if(st.name&&!opts.keepName){ project.name=st.name; $('projName').textContent=st.name; }
     if(sel>=boxes.length) sel=-1;
     if(!opts.keepHistory){ hist=[clone(boxes)]; hi=0; syncHist(); }
     resize(); commit(false); syncPages(); scheduleSave();
   },
-  state(){ syncPage(); return {name:project.name,theme,design:clone(design),shareChrome,pg,pages:clone(pages)}; },
+  state(){ syncPage(); return {name:project.name,theme,design:clone(design),shareChrome,pg,pages:clone(pages),
+    components:clone(components),pageMeta:clone(pageMeta),assets}; },
   isBusy(){ return !!mode||holdRender; },
 };
 
@@ -1635,7 +1308,7 @@ hist=[[]]; hi=0; syncHist();
 syncDesignForm(); applyDesign();
 commit(false); syncPages();
 emit('ready');
-const boot=/^#(s|live)=/.test(location.hash) ? Promise.resolve() : STORE.all().then(all=>{
+const boot=(/^#(s|live)=/.test(location.hash)||/[?&]example=/.test(location.search)) ? Promise.resolve() : STORE.all().then(all=>{
   if(all&&all.length){ loadProject(all[0]); syncPages(); toast('Reopened "'+all[0].name+'"'); }
   else { project.id=uid(); $('projName').textContent=project.name; }
 }).catch(()=>{ project.id=uid(); });

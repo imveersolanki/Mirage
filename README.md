@@ -10,50 +10,57 @@ the page that geometry implies and hands you the code.
 
 ```
 /
-├── index.html            landing page        → /
-├── mirage/
-│   └── index.html        the editor          → /mirage
-├── css/
-│   ├── landing.css
-│   ├── mirage.css        editor chrome + responsive output rules
-│   └── themes.css        design styles (35 with the house set)
+├── index.html              landing page               → /
+├── mirage/index.html       the editor                 → /mirage
+├── gallery/                example sketches           → /gallery
 ├── js/
-│   ├── landing.js
-│   ├── mirage.js         the engine: grid, classifier, render, export, pages
-│   ├── mirage-tools.js   palette, snippets, versions, share links, exports, deploy, Figma
-│   ├── mirage-import.js  photo of a sketch or a screenshot → boxes
-│   ├── mirage-ai.js      Gemini: copy, palette, layout (bring your own key)
-│   └── mirage-live.js    live sessions with named cursors
-└── vercel.json
+│   ├── core/               pure modules, browser and Node
+│   │   ├── content.js        component list and default text
+│   │   ├── classify.js       the classifier
+│   │   ├── markup.js         one generator for preview, HTML, React, Tailwind
+│   │   ├── css.js · jsx.js · site.js   stylesheet, JSX and page head for the CLI
+│   ├── mirage.js           the editor engine (ES module)
+│   ├── mirage-tools.js     palette, snippets, versions, share links, exports, deploy, Figma SVG
+│   ├── mirage-import.js    photo of a sketch or a screenshot → boxes
+│   ├── mirage-ai.js        Gemini: copy, palette, layout, handwriting
+│   ├── mirage-live.js      peer to peer sessions, per-box merge
+│   ├── mirage-media.js     images and alt text
+│   ├── mirage-quality.js   accessibility and SEO checks, page titles
+│   └── mirage-components.js  your own components
+├── css/                    landing, editor chrome + output, 35 styles
+├── packages/ui/            @mirage/ui, the React components the export imports
+├── cli/mirage.mjs          npx mirage build | check | css
+├── figma-plugin/           Figma ↔ Mirage
+├── tests/                  unit tests (node --test) and Playwright e2e
+├── media/                  demo video and clips
+└── docs/launch.md          Product Hunt, Show HN, social copy
 ```
 
-The feature modules only talk to the engine through `window.Mirage`, so any
+The feature modules talk to the engine only through `window.Mirage`, so any
 of them can be removed without breaking the editor.
 
-## Features
+## CLI
 
-- **Read, then override.** Every box shows what else it could be ("also reads
-  as Image 68%"); one click switches it and it stays set.
-- **Nesting.** Alt-drag inside a box to draw a child. The parent becomes a
-  group and its children are laid out as rows inside it.
-- **Small screens.** Hide a box on tablet or phone, move it first on phone,
-  and choose when a row stacks. Exported as real media queries.
-- **Pages.** Several pages per project with shared nav and footer text. Nav
-  links become real links in the site export.
-- **Import.** A photo of a paper wireframe or a screenshot of any site turns
-  into boxes, entirely in the browser.
-- **AI.** Write the copy, design a palette, or draft a layout from a one-line
-  brief, with your own Gemini key.
-- **Export.** HTML, React, Tailwind, Vue, Svelte, Astro, Next.js (whole app
-  folder), design.md, JSON, or every page as a static site zip.
-- **Share.** The whole sketch packed into a link, Figma SVG out and back in,
-  and one-click deploy to Netlify with a personal token.
-- **Live.** Peer to peer sessions with named cursors. Tabs on one device
-  sync instantly; other devices connect over WebRTC via PeerJS.
-- **Workflow.** Command palette (⌘K), snippets, named versions.
+Commit the sketch (Export → JSON) and build it anywhere:
 
-No build step, no dependencies, no server. Every page is plain
-HTML/CSS/JS served as static files.
+```bash
+npx github:Veer1778/Mirage build sketch.json --target site --out dist
+npx github:Veer1778/Mirage build sketch.json --target next --out app
+npx github:Veer1778/Mirage check sketch.json        # exits 1 on errors, e.g. images without alt text
+```
+
+Targets: `site`, `html`, `react`, `next`, `tailwind`, `json`. The CLI uses the
+same core modules as the editor, so the output is the same.
+
+## Tests
+
+```bash
+npm install
+npm test            # classifier, markup, CLI, @mirage/ui, Figma plugin
+npm run test:e2e    # the editor in Chromium via Playwright
+```
+
+CI runs both on every push (`.github/workflows/ci.yml`).
 
 ## How the model works
 
@@ -91,6 +98,7 @@ npx serve .
 ```
 
 Then open `http://localhost:3000` and `http://localhost:3000/mirage`.
+Or `npm run dev` for the bundled server on port 4173.
 
 ## Deploy
 
